@@ -1,0 +1,6 @@
+
+ALTER TABLE `hotel_master` ADD `contact_person_name` VARCHAR(50) NULL AFTER `hotel_email`, ADD `contact_person_email` VARCHAR(50) NULL AFTER `contact_person_name`, ADD `contact_person_mobile` BIGINT NULL AFTER `contact_person_email`;
+
+
+
+ALTER TABLE `inquiry` ADD `hotel_userId` INT NOT NULL AFTER `inquiry_id`;

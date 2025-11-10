@@ -1,0 +1,5 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "com.example.sukti",
+               "sha256_cert_fingerprints": ["46:51:CA:00:42:23:C0:91:B3:4C:AF:6C:39:FC:FE:1E:15:13:E1:EA:40:84:0E:F0:87:04:8A:DF:6F:71:A7:F7"] }
+}]

@@ -1,0 +1,127 @@
+URL: https://getdemo.in/sukti/api/login
+Request:
+{
+    "mobile_number" : "9028187696",
+    "password" : "admin"
+}
+Response:
+{
+    "status": "success",
+    "message": "User List Found.",
+    "user": {
+        "id": 1,
+        "name": "Super",
+        "email": "admin@admin.com",
+        "mobile_number": "9028187696",
+        "address": "-",
+        "role_id": 1,
+        "status": 1
+    },
+    "authorisation": {
+        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2dldGRlbW8uaW4vc3VrdGkvYXBpL2xvZ2luIiwiaWF0IjoxNzA5NjMyODQzLCJleHAiOjE3MDk2MzY0NDMsIm5iZiI6MTcwOTYzMjg0MywianRpIjoiNVVFdnczdXZwYm5kcWtIZiIsInN1YiI6IjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.7-zXo9dTBCX4MzMy_lDe8qAb7bSYkvB7um1dmxO4QMk",
+        "type": "bearer"
+    }
+}
+
+URL:https://getdemo.in/sukti/api/create_customer
+
+{   
+    "name":"test user 1",
+    "useremail":"user123@gmail.com",
+    "mobile":"9874569877",
+    "address":"test address"
+    "cpassword":123456
+}
+Response:
+{
+    "status": "success",
+    "message": "Customer created successfully"
+}
+
+URL:https://getdemo.in/sukti/api/edit_customer
+
+Request:
+
+{   "mobile_number" : "9028187696",
+    "password" : "admin",
+    "status":1,
+    "user_id":2,
+    "name":"test user 1",
+    "useremail":"user123@gmail.com",
+    "mobile":"9874569877",
+    "address":"test address"
+}
+Response:
+
+{
+    "status": "success",
+    "message": "Customer updated successfully"
+}
+
+URL:https://getdemo.in/sukti/api/delete_customer
+
+Request:
+{   "mobile_number" : "9028187696",
+    "password" : "admin",
+    "status":1,
+    "user_id":2
+}
+Response:
+{
+    "status": "success",
+    "message": "Customer deleted successfully"
+}
+
+URL:https://getdemo.in/sukti/api/customer_changepassword
+Request:
+{
+    "email": "user123@gmail.com",
+    "password" : "1234567",
+    "status":"1",
+    "user_id":"12",
+    "new_password":"1234567",
+    "new_confirm_password":"1234567"
+}
+Response:
+{
+    "status": "success",
+    "message": "Password Updated Successfully"
+}
+
+URL:https://getdemo.in/sukti/api/category_list
+    direct response:
+URL:https://getdemo.in/sukti/api/product_list
+    direct response:
+
+URL:https://getdemo.in/sukti/api/addto_wishlist
+request:
+{
+    "email": "user123@gmail.com",
+    "password" : "123456",
+    "status":1,
+    "product_id" :7,
+    "customer_id":30
+}
+response:
+{
+    "status": "success",
+    "message": "Product Added To Wishlist!"
+}
+
+URL: https://getdemo.in/sukti/api/removeFrom_wishlist
+Request:
+{
+    "email": "user123@gmail.com",
+    "password" : "123456",
+    "status":1,
+    "product_id" :7,
+    "customer_id":30
+}
+Response:
+{
+    "status": "success",
+    "message": "Product Removed From Wishlist!"
+}
+
+
+
