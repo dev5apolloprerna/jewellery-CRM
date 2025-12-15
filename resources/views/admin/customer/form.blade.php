@@ -39,7 +39,7 @@
 
     <div class="col-lg-6 col-md-6">
         <label class="form-label">Address <span style="color:red;">*</span></label>
-        <textarea  name="address" class="form-control" value="{{ old('address', $customer->address ?? '') }}"  placeholder="Enter Address" required></textarea>
+        <textarea  name="address" class="form-control" value="{{ old('address', $customer->address ?? '') }}"  placeholder="Enter Address" required>{{ old('address', $customer->address ?? '') }}</textarea>
         @error('address') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
 
@@ -53,7 +53,7 @@
         <select name="cast_id" class="form-control">
             <option value="">Select</option>
             @foreach($cast as $cat)
-                <option value="{{ $cat->cast_id }}" {{ old('cast_id', $customer->cast_id ?? '') == $cat->cast ? 'selected' : '' }}>{{ $cat->cast }}</option>
+                <option value="{{ $cat->cast_id }}" {{ old('cast_id', $customer->cast_id ?? '') == $cat->cast_id ? 'selected' : '' }}>{{ $cat->cast }}</option>
             @endforeach
         </select>
         @error('cast_id') <small class="text-danger">{{ $message }}</small> @enderror
@@ -82,6 +82,43 @@
             @endforeach
         </select>
         @error('branch_id') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
+<div class="col-lg-6 col-md-6">
+</div>
+    <div class="col-lg-6 col-md-6">
+        <label class="form-label">Birthdate </label>
+        <input type="date" name="birthdate" class="form-control" value="{{ old('birthdate', $customer->birthdate ??  now()->format('Y-m-d')) }}" minlength="5" maxlength="100" placeholder="Enter birthdate">
+        @error('birthdate') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
+    <div class="col-lg-6 col-md-6">
+        <label class="form-label">Anniversary Date </label>
+        <input type="date" name="anniversary_date" class="form-control" value="{{ old('anniversary_date', $customer->anniversary_date ??  now()->format('Y-m-d')) }}" minlength="5" maxlength="100" placeholder="Enter anniversary_date">
+        @error('anniversary_date') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
+     <div class="col-lg-6 col-md-6">
+        <label class="form-label">Beverage </label>
+        <select name="beverage" class="form-control">
+            <option value="">Select Beverage</option>
+            <option value="tea" {{ old('beverage', $customer->beverage ?? '') == 'tea' ? 'selected' : '' }}>Tea</option>
+            <option value="coffee" {{ old('beverage', $customer->beverage ?? '') == 'coffee' ? 'selected' : '' }}>Coffee</option>
+            <option value="Juice" {{ old('beverage', $customer->beverage ?? '') == 'Juice' ? 'selected' : '' }}>Juice</option>
+        </select>
+        @error('beverage') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
+     <div class="col-lg-6 col-md-6">
+        <label class="form-label">Suger </label>
+        <select name="suger" class="form-control">
+            <option value="">Select Suger</option>
+            <option value="less" {{ old('suger', $customer->suger ?? '') == 'less' ? 'selected' : '' }}>less</option>
+            <option value="no sugar" {{ old('suger', $customer->suger ?? '') == 'no sugar' ? 'selected' : '' }}>no sugar</option>
+            <option value="suger free" {{ old('suger', $customer->suger ?? '') == 'suger free' ? 'selected' : '' }}>suger free</option>
+            <option value="regular" {{ old('suger', $customer->suger ?? '') == 'regular' ? 'selected' : '' }}>regular</option>
+        </select>
+        @error('suger') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
 
 
