@@ -12,7 +12,7 @@ class Customer extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'customer_name', 'customer_phone', 'customer_type', 'refer_by', 'status', 'branch_id', 'customer_email', 'address', 'city', 'state_id','cast_id'
+        'customer_name', 'customer_phone', 'customer_type', 'refer_by', 'status', 'branch_id', 'customer_email', 'address', 'city', 'state_id','cast_id','birthdate', 'anniversary_date', 'beverage', 'suger'
     ];
 
     public function branch()
