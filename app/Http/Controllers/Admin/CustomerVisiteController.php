@@ -115,12 +115,12 @@ class CustomerVisiteController extends Controller
                     $empid = $user->emp_id;
                     $branch_id = $user->branch_id;
         
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->paginate(env('PER_PAGE_COUNT'));
+                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->paginate(env('PER_PAGE_COUNT'));
                     return view('employee.cust_product.index', compact('products','id'));
                 }
                 else
                 {
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
+                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','productStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
 
                             return response()->json($products);
 

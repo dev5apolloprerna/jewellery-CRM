@@ -26,7 +26,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                 <li class="nav-item">
                     <a class="nav-link" href="#sidebarMore" data-bs-toggle="collapse" role="button"
                         aria-expanded="true" aria-controls="sidebarMore">
-                        <i class="fa fa-list text-white"></i> Master Entry </a>
+                        <i class="fa fa-list text-white"></i> Master&nbsp;Entry </a>
                     <div class="menu-dropdown collapse show" id="sidebarMore" style="">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
@@ -102,29 +102,37 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                     <a class="nav-link menu-link @if (request()->routeIs('empMaster.index')) {{ 'active' }} @endif"
                         href="{{ route('empMaster.index') }}">
                         <i class="fa-solid fa-users"></i>
-                        <span data-key="t-dashboards">Employee Master</span>
+                        <span data-key="t-dashboards">Employee&nbsp;Master</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link menu-link @if (request()->routeIs('vendorMaster.index')) {{ 'active' }} @endif"
                         href="{{ route('vendorMaster.index') }}">
                         <i class="fas fa-store"></i>
-                        <span data-key="t-dashboards">Vendor Master</span>
+                        <span data-key="t-dashboards">Vendor&nbsp;Master</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link menu-link @if (request()->routeIs('customer.index')) {{ 'active' }} @endif"
                         href="{{ route('customer.index') }}">
                         <i class="fa-solid fa-user"></i>
-                        <span data-key="t-dashboards">Customer Master</span>
+                        <span data-key="t-dashboards">Customer&nbsp;Master</span>
                     </a>
                 </li> 
                 <li class="nav-item">
                     <a class="nav-link menu-link @if (request()->routeIs('custOrder.index')) {{ 'active' }} @endif"
                         href="{{ route('custOrder.index') }}">
                         <i class="
+                        fas fa-shopping-cart"></i>
+                        <span data-key="t-dashboards">Order&nbsp;Product</span>
+                    </a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link menu-link @if (request()->routeIs('custOrder.purchased')) {{ 'active' }} @endif"
+                        href="{{ route('custOrder.purchased') }}">
+                        <i class="
                         fas fa-shopping-bag"></i>
-                        <span data-key="t-dashboards">Order Product</span>
+                        <span data-key="t-dashboards">Purchased&nbsp;Product</span>
                     </a>
                 </li>
               <li class="nav-item">
@@ -207,8 +215,16 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                     <a class="nav-link menu-link @if (request()->routeIs('EMPcustOrder.index')) {{ 'active' }} @endif"
                         href="{{ route('EMPcustOrder.index') }}">
                         <i class="
-                        fas fa-shopping-bag"></i>
+                        fas fa-shopping-cart"></i>
                         <span data-key="t-dashboards">Order Product</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link @if (request()->routeIs('EMPcustOrder.purchased')) {{ 'active' }} @endif"
+                        href="{{ route('EMPcustOrder.purchased') }}">
+                        <i class="
+                        fas fa-shopping-bag"></i>
+                        <span data-key="t-dashboards">Purchased Product</span>
                     </a>
                 </li>
                 @endif

@@ -25,7 +25,7 @@ class CustomerOrderController extends Controller
 {
     public function index(Request $request,$date = null)
     {
-        // try{
+        try{
             $user = Auth::guard('web_employees')->user();
 
             if ($user && $user->emp_id != null && $user->branch_id != null) 
@@ -44,6 +44,7 @@ class CustomerOrderController extends Controller
                         ])
                         ->whereHas('orderDetails', function ($q) use ($branch_id) {
                             $q->where('branch_id', $branch_id);
+                            $q->where('delivery_status', '!=',9);
                         })
                         ->whereNotNull('visit_id');
                 
@@ -64,15 +65,28 @@ class CustomerOrderController extends Controller
                 return view('employee.cust_order.index', compact('orders','orderStatus'));
 
             }else{
-                $orders = CustOrder::with(['branch','customer','customerVisit','orderDetails.employee','orderDetails.OrderStatus','payment_detail'])->orderBy('order_id','desc')->whereNotNull('visit_id');
-                if ($date) {
-                    $orders->whereHas('payment_detail', function ($q) use ($date) {
-                        $q->whereDate('next_followup_date', Carbon::parse($date));
-                    });
-                }
-                
+                $orders = CustOrder::with([
+                            'branch',
+                            'customer',
+                            'customerVisit',
+                            'orderDetails.employee',
+                            'orderDetails.OrderStatus',
+                            'payment_detail'
+                        ])
+                        ->whereNotNull('visit_id')
+                        ->whereHas('orderDetails', function ($q) {
+                            $q->where('delivery_status', 9);
+                        });
+
+                    if ($date) 
+                    {
+                        $orders->whereHas('payment_detail', function ($q) use ($date) {
+                            $q->whereDate('next_followup_date', Carbon::parse($date));
+                        });
+                    }
+
                     $orders = $orders->orderBy('order_id', 'desc')
-                     ->paginate(env('PER_PAGE_COUNT'));
+                        ->paginate(env('PER_PAGE_COUNT'));
 
               
                 $orderStatus = OrderStatus::all();
@@ -80,12 +94,84 @@ class CustomerOrderController extends Controller
                 return view('admin.cust_order.index', compact('orders','orderStatus'));
 
             }
-        /*} catch (\Exception $e) 
+        } catch (\Exception $e) 
         {
                 return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
-        }*/
+        }
     }
 
+public function purchased(Request $request,$date = null)
+    {
+        try{
+            $user = Auth::guard('web_employees')->user();
+
+            if ($user && $user->emp_id != null && $user->branch_id != null) 
+            {
+                $empid = $user->emp_id;
+                $branch_id = $user->branch_id;
+        
+                //$orders = CustOrder::with(['branch','customer','customerVisit','orderDetails.employee'])->where(['emp_id'=>$empid])->whereNotNull('visit_id')->orderBy('order_id','desc')->paginate(env('PER_PAGE_COUNT'));
+                $orders = CustOrder::with([
+                            'branch', 
+                            'customer', 
+                            'customerVisit', 
+                            'orderDetails.employee', 
+                            'orderDetails.OrderStatus',
+                            'payment_detail'
+                        ])
+                        ->whereHas('orderDetails', function ($q) use ($branch_id) {
+                            $q->where('branch_id', $branch_id)->where('delivery_status', 9);
+                        })
+                        ->whereNotNull('visit_id');
+                
+                        if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                            $orders->whereHas('payment_detail', function ($q) use ($date) {
+                                $q->whereDate('next_followup_date', Carbon::parse($date));
+                            });
+                        }
+                    $orders = $orders->orderBy('order_id', 'desc')
+                     ->paginate(env('PER_PAGE_COUNT'));
+
+
+                $orderStatus = OrderStatus::all();
+
+                return view('employee.cust_order.purchased', compact('orders','orderStatus'));
+
+            }else{
+                $orders = CustOrder::with([
+                            'branch',
+                            'customer',
+                            'customerVisit',
+                            'orderDetails.employee',
+                            'orderDetails.OrderStatus',
+                            'payment_detail'
+                        ])
+                        ->whereNotNull('visit_id')
+                        ->whereHas('orderDetails', function ($q) {
+                            $q->where('delivery_status', 9);
+                        });
+
+                    if ($date) 
+                    {
+                        $orders->whereHas('payment_detail', function ($q) use ($date) {
+                            $q->whereDate('next_followup_date', Carbon::parse($date));
+                        });
+                    }
+
+                    $orders = $orders->orderBy('order_id', 'desc')
+                        ->paginate(env('PER_PAGE_COUNT'));
+
+              
+                $orderStatus = OrderStatus::all();
+
+                return view('admin.cust_order.purchased', compact('orders','orderStatus'));
+
+            }
+        } catch (\Exception $e) 
+        {
+                return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
     public function create($id)
     {
         try

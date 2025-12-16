@@ -17,8 +17,10 @@
                             <h5 class="card-title mb-0">Customer Order List</h5>
                             
                             <div class="btn-group">
-                                
-                                <a href="{{ route('EMPcustomer.index') }}" class="btn btn-sm btn-primary" style="margin-left: 10px;">
+                               <!--  <a href="{{ route('custOrder.create') }}" class="btn btn-sm btn-primary">
+                                    <i data-feather="plus"></i> Add New
+                                </a> -->
+                                <a href="{{ route('customer.index') }}" class="btn btn-sm btn-primary" style="margin-left: 10px;">
                                     Back
                                 </a>
                             </div>
@@ -55,7 +57,7 @@
                             <div class="card-body">
                                 <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
                                     <thead>
-                                        <tr>
+                                         <tr>
                                             <th>No</th>
                                             <th>Customer Name</th>
                                             <th>Branch Name </th>
@@ -64,7 +66,7 @@
                                             <th>Paid Amount</th>
                                             <th>Due Amount</th>
                                             <th>Order Id </th>
-                                            <th>Order Date </th>
+                                            <th>Purchase Date </th>
                                             <th>Visite Date </th>
                                             <th>Actions</th>
                                         </tr>
@@ -82,26 +84,27 @@
                                                 <td>{{ $order->order_id ?? '-' }}</td>
                                                 <td>{{ \Carbon\Carbon::parse($order->created_at)->format('d-m-Y') }}</td>
                                                 <td>{{ \Carbon\Carbon::parse($order->customerVisit->visit_date)->format('d-m-Y') }}</td>
+
                                                 <td>
-                                                    <div>       
-                                                        <!-- <a class="" href="#" data-bs-toggle="modal"
+                                                    <div>                                                        
+                                                        <!--<a class="" href="#" data-bs-toggle="modal"
                                                                 title="Edit Order Status" data-bs-target="#editModal_{{ $order->order_id }}">
                                                                 <i class="fa fa-edit" aria-hidden="true"></i>
-                                                        </a> -->
-                                                        <!-- <a href="{{ route('EMPcustOrder.edit', $order->order_id) }}"><i class="fa fa-edit"></i></a> -->
+                                                        </a>-->
                                                         <a class="" href="#" data-bs-toggle="modal"
                                                                 title="Delete" data-bs-target="#deleteRecordModal"
                                                                 onclick="deleteData(<?= $order->order_id ?>);">
                                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                                         </a>
-                                                         
-                                                       <a class="" href="{{ route('EMPorderPayment.index', $order->order_id) }}">
+                                                        
+                                                       <a class="" href="{{ route('orderPayment.index', $order->order_id) }}">
                                                             <i class="fa fa-credit-card" title="Payment Details"></i>
                                                         </a>
-                                                        <a class="mx-1" title="Customer Order Detail"
-                                                            href="{{ route('EMPcustOrder.detail', $order->visit_id) }}">
-                                                            <i class="fas fa-eye"></i>
+                                                        <a class="" href="{{ route('custOrder.detail', $order->visit_id) }}">
+                                                            <i class="fa fa-eye" title="Order Details"></i>
                                                         </a>
+                                                        
+
                                                     </div>
                                                 </td>
                                             </tr>
@@ -165,7 +168,6 @@
 
 
 
-
     <!--Delete Modal -->
     <div class="modal fade zoomIn" id="deleteRecordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -191,7 +193,7 @@
                             Delete It!
                         </a>
                         <button type="button" class="btn w-sm btn-primary mx-2" data-bs-dismiss="modal">Close</button>
-                        <form action="{{ route('EMPcustOrder.destroy', $item->order_id ?? '') }}" id="user-delete-form" method="POST">
+                        <form action="{{ route('custOrder.destroy', $item->order_id ?? '') }}" id="user-delete-form" method="POST">
                             @csrf
                             <input type="hidden" name="order_id" id="deleteid" value="">
 

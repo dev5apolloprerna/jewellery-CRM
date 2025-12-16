@@ -41,10 +41,12 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                                 src="{{ asset('assets/images/users/undraw_profile.webp') }}" alt="Header Avatar">
                             <span class="text-start ms-xl-2">
                                 <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
+                                    <?php
+                                    ?>
                                    @if(auth()->user())
-                                        {{ auth()->user()->full_name }}
+                                        {{ auth()->user()->full_name ?? Auth::guard('web_employees')->user()->emp_name  }}
                                     @else
-                                        {{ Auth::guard('web_employees')->user()->name }}
+                                        {{ Auth::guard('web_employees')->user()->emp_name }}
                                     @endif
 
                                 </span>
@@ -94,7 +96,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                       { ?>
                       <div class="dropdown-menu dropdown-menu-end">
                         <!-- item-->
-                        <h6 class="dropdown-header">Welcome {{ Auth::guard('web_employees')->user()->name }}</h6>
+                        <h6 class="dropdown-header">Welcome {{ Auth::guard('web_employees')->user()->emp_name }}</h6>
                         <a class="dropdown-item" href="{{ route('empprofile.employee-detail') }}"><i
                                 class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span
                                 class="align-middle">Profile</span>
