@@ -217,7 +217,10 @@ class CustomerProductController extends Controller
                         $status='ordered';
                     }
                     CustomerProduct::where('cust_pro_id', $request->product_id)->update(['status' => $status]);
-
+                }
+                if($request->status == 9)
+                {
+                    
                 }
             
             $CustOrderDetail = CustOrderDetail::where('cust_pro_id', $request->product_id)->first();

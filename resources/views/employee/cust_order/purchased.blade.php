@@ -64,7 +64,7 @@
                                             <th>Paid Amount</th>
                                             <th>Due Amount</th>
                                             <th>Order Id </th>
-                                            <th>Order Date </th>
+                                            <th>Purchase Date </th>
                                             <th>Visite Date </th>
                                             <th>Actions</th>
                                         </tr>

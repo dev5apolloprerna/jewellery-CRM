@@ -312,6 +312,10 @@ Route::match(['get', 'post'], 'admin/customer-order/{date?}', [CustomerOrderCont
     ->where('date', '\d{4}-\d{2}-\d{2}')
     ->name('custOrder.index');
 
+Route::match(['get', 'post'], 'admin/customer-purchased/{date?}', [CustomerOrderController::class, 'purchased'])
+    ->where('date', '\d{4}-\d{2}-\d{2}')
+    ->name('custOrder.purchased');
+
 //Route::match(['get', 'post'], 'admin/customer-order/', [CustomerOrderController::class, 'index'])->name('custOrder.index');
 Route::post('admin/customer-order/delete/{id?}', [CustomerOrderController::class, 'destroy'])->name('custOrder.destroy');
 Route::get('admin/customer-order/create', [CustomerOrderController::class, 'create'])->name('custOrder.create');
@@ -380,6 +384,10 @@ Route::resource('employee/EMPcustOrder', App\Http\Controllers\Admin\CustomerOrde
 Route::match(['get', 'post'], 'employee/employee/emp-customer-order/{date?}', [CustomerOrderController::class, 'index'])
     ->where('date', '\d{4}-\d{2}-\d{2}')
     ->name('EMPcustOrder.index');
+
+Route::match(['get', 'post'], 'employee/employee/emp-customer-purchased/{date?}', [CustomerOrderController::class, 'purchased'])
+    ->where('date', '\d{4}-\d{2}-\d{2}')
+    ->name('EMPcustOrder.purchased');
 
 //Route::match(['get', 'post'], 'employee/emp-customer-order/', [CustomerOrderController::class, 'index'])->name('EMPcustOrder.index');
 Route::post('employee/customer-order/delete/{id?}', [CustomerOrderController::class, 'destroy'])->name('EMPcustOrder.destroy');
