@@ -112,8 +112,8 @@ class EMPCustomerVisitController extends Controller
     } 
      public function product($id)
         {
-            try
-            {
+            /*try
+            {*/
                 $user = Auth::guard('web_employees')->user();
     
                 if ($user && $user->emp_id != null && $user->branch_id != null) 
@@ -122,14 +122,14 @@ class EMPCustomerVisitController extends Controller
                     $empid = $user->emp_id;
                     $branch_id = $user->branch_id;
         
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
+                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
                     
                     return response()->json($products);
                 }
-            } catch (\Exception $e) 
+            /*} catch (\Exception $e) 
             {
                     return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
-            }
+            }*/
         }
 
     public function previous_visit(Request $request,$id)

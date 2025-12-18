@@ -523,34 +523,72 @@ $(document).ready(function () {
         });
     });
 
-    function loadProductList() {
-        $.ajax({
-            url: "{{ route('EMPcustProduct.index', $id) }}",
-            method: 'GET',
-            success: function (products) {
-                let html = '';
-                products.forEach((item, index) => {
-                    html += `<tr id="row-${item.cust_pro_id}">
+function loadProductList() {
+    $.ajax({
+        url: "{{ route('EMPcustProduct.index', $id) }}",
+        method: 'GET',
+        success: function (products) {
+            let html = '';
+
+            products.forEach((item, index) => {
+
+                // 🔹 Delete button (always visible)
+                let actionButtons = `
+                    <button class="btn btn-danger btn-sm deleteProduct"
+                        data-id="${item.cust_pro_id}">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                `;
+
+                // 🔹 Edit button (ONLY if order placed)
+                if (item.order_details !== null) {
+                    actionButtons += `
+                        <button type="button"
+                            class="btn btn-success btn-sm editStatus"
+                            data-id="${item.cust_pro_id}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editModal">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                    `;
+                }
+
+                // 🔹 Order button (always visible)
+                actionButtons += `
+                    <button type="button"
+                        class="btn btn-success btn-sm orderProduct"
+                        data-id="${item.cust_pro_id}"
+                        data-name="${item.product.product_name}"
+                        data-product="${item.product_id}"
+                        data-branch="${item.branch_id}"
+                        data-refno="${item.product.product_tag}"
+                        data-branchname="${item.branch.branch_name}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#orderModal">
+                        <i class="fa fa-shopping-cart" title="Order Product"></i>
+                    </button>
+                `;
+
+                html += `
+                    <tr id="row-${item.cust_pro_id}">
                         <td>${index + 1}</td>
                         <td>${item.category.category_name}</td>
                         <td>${item.product.product_name}</td>
-                        <td>${item.order_details?.order_status?.status ?? '-'}</td>
+                        <td>${item.order_details?.order_status?.status ?? item.status}</td>
                         <td>${item.employee.emp_name}</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}"><i class="fa fa-trash"></i></button>
-                            <button type="button" class="btn btn-success btn-sm editStatus" data-id="${item.cust_pro_id}" data-bs-toggle="modal"    data-bs-target="#editModal"><i class="fa fa-edit"></i></button>
-                            <button type="button" class="btn btn-success btn-sm orderProduct" data-id="${item.cust_pro_id}" data-name="${item.product.product_name}" data-product="${item.product_id}" data-branch="${item.branch_id}" data-refno="${item.product.product_tag}" data-branchname="${item.branch.branch_name}"  data-bs-toggle="modal"  data-bs-target="#orderModal"><i class="fa fa-shopping-cart" title="Order Product"></i></button>
-                        </td>
-                    </tr>`;
-                });
-                $('#productTableBody').html(html);
-            }
-        });
-    }
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+            });
+
+            $('#productTableBody').html(html);
+        }
+    });
+}
+
 
     loadProductList(); // Load on page load
 });
-
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, '0');

@@ -491,7 +491,7 @@ $(document).ready(function () {
              success: function (response) {
                     if (response.success) {
                         loadProductList();
-                        $('#yourFormId')[0].reset(); // reset form if needed
+                        $('#regForm')[0].reset(); // reset form if needed
                     }
                 },
                 error: function (xhr) {
@@ -506,32 +506,65 @@ $(document).ready(function () {
     });
 
     function loadProductList() {
-        $.ajax({
-            url: "../customer-product/{{ $id }}",
-            method: 'GET',
-            success: function (products) {
+    $.ajax({
+        url: "../customer-product/{{ $id }}",
+        method: 'GET',
+        success: function (products) {
 
-                let html = '';
-                products.forEach((item, index) => {
-console.log(item);
-                    html += `<tr id="row-${item.cust_pro_id}">
-                        <td>${index + 1}</td>
-                        <td>${item.category.category_name}</td>
-                        <td>${item.product.product_name}</td>
-                        <td>${item.order_details?.order_status?.status ?? item.status}</td>
-                        <td>${item.employee.emp_name}</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}"><i class="fa fa-trash"></i></button>
-                            <button type="button" class="btn btn-success btn-sm editStatus" data-id="${item.cust_pro_id}" data-bs-toggle="modal"    data-bs-target="#editModal"><i class="fa fa-edit"></i></button>
+            let html = '';
+            products.forEach((item, index) => {
 
-                            <button type="button" class="btn btn-success btn-sm orderProduct" data-id="${item.cust_pro_id}" data-name="${item.product.product_name}" data-product="${item.product_id}" data-branch="${item.branch_id}" data-refno="${item.product.product_tag}" data-branchname="${item.branch.branch_name}"  data-bs-toggle="modal"  data-bs-target="#orderModal"><i class="fa fa-shopping-cart" title="Order Product"></i></button>
-                        </td>
-                    </tr>`;
-                });
-                $('#productTableBody').html(html);
-            }
-        });
-    }
+                const orderStatus =
+                    item.order_details?.order_status?.status ?? item.status;
+
+                // ✅ Check if order is placed
+                const isOrderPlaced = !!item.order_details;
+
+                html += `<tr id="row-${item.cust_pro_id}">
+                    <td>${index + 1}</td>
+                    <td>${item.category.category_name}</td>
+                    <td>${item.product.product_name}</td>
+                    <td>${orderStatus ?? '-'}</td>
+                    <td>${item.employee.emp_name}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm deleteProduct"
+                            data-id="${item.cust_pro_id}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+
+                        ${
+                            isOrderPlaced
+                                ? `<button type="button"
+                                      class="btn btn-success btn-sm editStatus"
+                                      data-id="${item.cust_pro_id}"
+                                      data-bs-toggle="modal"
+                                      data-bs-target="#editModal">
+                                      <i class="fa fa-edit"></i>
+                                   </button>`
+                                : ''
+                        }
+
+                        <button type="button"
+                            class="btn btn-success btn-sm orderProduct"
+                            data-id="${item.cust_pro_id}"
+                            data-name="${item.product.product_name}"
+                            data-product="${item.product_id}"
+                            data-branch="${item.branch_id}"
+                            data-refno="${item.product.product_tag}"
+                            data-branchname="${item.branch.branch_name}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#orderModal">
+                            <i class="fa fa-shopping-cart" title="Order Product"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            $('#productTableBody').html(html);
+        }
+    });
+}
+
 
     loadProductList(); // Load on page load
 });

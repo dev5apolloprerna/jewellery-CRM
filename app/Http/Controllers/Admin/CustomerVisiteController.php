@@ -120,7 +120,7 @@ class CustomerVisiteController extends Controller
                 }
                 else
                 {
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','productStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
+                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
 
                             return response()->json($products);
 

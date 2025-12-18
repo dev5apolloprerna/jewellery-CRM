@@ -447,7 +447,7 @@ $(document).ready(function () {
              success: function (response) {
                     if (response.success) {
                         loadProductList();
-                        $('#yourFormId')[0].reset(); // reset form if needed
+                        $('#regForm')[0].reset(); // reset form if needed
                     }
                 },
                 error: function (xhr) {
