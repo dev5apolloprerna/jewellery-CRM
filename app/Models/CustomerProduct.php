@@ -47,7 +47,7 @@ class CustomerProduct extends Model
     {
         return $this->hasOne(CustOrderDetail::class, 'cust_pro_id', 'cust_pro_id');
     }
-    public function productStatus()
+    public function orderStatus()
     {
         return $this->hasOne(OrderStatus::class, 'order_status_id', 'status');
     }
