@@ -84,6 +84,8 @@
         @error('branch_id') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
 
+
+
 <div class="col-lg-6 col-md-6">
 </div>
     <div class="col-lg-6 col-md-6">
@@ -120,6 +122,4 @@
         </select>
         @error('suger') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
-
-
 

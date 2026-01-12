@@ -19,10 +19,6 @@ class VisitDetail extends Model
     {
         return $this->belongsTo(Employee::class, 'emp_id');
     }
-    public function visit()
-    {
-        return $this->belongsTo(CustomerVisit::class, 'visit_id', 'visit_id');
-    }
      public function custVisit()
     {
         return $this->hasOne(CustomerVisit::class, 'visit_id', 'visit_id');
