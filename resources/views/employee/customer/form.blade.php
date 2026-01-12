@@ -69,8 +69,6 @@
         </select>
         @error('customer_type') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
-    
-    
     <div class="col-lg-6 col-md-6">
         <label class="form-label">Birthdate </label>
         <input type="date" name="birthdate" class="form-control" value="{{ old('birthdate', $customer->birthdate ??  now()->format('Y-m-d')) }}" minlength="5" maxlength="100" placeholder="Enter birthdate">
@@ -105,3 +103,6 @@
         </select>
         @error('suger') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
+
+    
+    

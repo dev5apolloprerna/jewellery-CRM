@@ -106,8 +106,8 @@ class CustomerVisiteController extends Controller
         }
      public function product($id)
         {
-            try
-            {
+            /*try
+            {*/
                 $user = Auth::guard('web_employees')->user();
     
                 if ($user && $user->emp_id != null && $user->branch_id != null) 
@@ -126,10 +126,10 @@ class CustomerVisiteController extends Controller
 
                 return view('admin.cust_product.index', compact('products','id'));
                 }
-            } catch (\Exception $e) 
+            /*} catch (\Exception $e) 
             {
                     return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
-            }
+            }*/
         }
 
     public function previous_visit(Request $request,$id)

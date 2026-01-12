@@ -12,9 +12,6 @@ class CustomerVisit extends Model
     protected $table = 'cust_visit';
     protected $primaryKey = 'visit_id';
     public $timestamps = false;
-    public $incrementing = true;          // set false if your visit_id is not auto-increment
-    protected $keyType = 'int';           // 'string' if UUIDs
-
 
     protected $fillable = [
         'visit_id', 'cust_id', 'remark', 'branch_id', 'emp_id', 'visit_date', 'next_followup_date', 'followup_status', 'close_reason_id'
@@ -33,18 +30,9 @@ class CustomerVisit extends Model
     {
         return $this->belongsTo(Customer::class, 'cust_id');
     }
-   /* public function visitDetails()
-    {
-        return $this->hasOne(VisitDetail::class, 'visit_id', 'visit_id');
-    }
-
-*/
     public function visitDetails()
     {
-        // foreign on VisitDetail = visit_id, local on CustomerVisit = visit_id
-        return $this->hasMany(VisitDetail::class, 'visit_id', 'visit_id')
-                    ->orderByDesc('next_followup_date')
-                    ->orderByDesc('followup_detail_id');
+        return $this->hasOne(VisitDetail::class, 'visit_id', 'visit_id');
     }
 
     public function closereason()
