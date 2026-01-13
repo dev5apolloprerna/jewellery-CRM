@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\ProductCategory;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +15,9 @@ class ProductController extends Controller
     {
         try
         {
-            $Product = Product::orderBy('product_id', 'desc')->paginate(env('PER_PAGE_COUNT'));
-            return view('admin.product_master.index', compact('Product'));
+            $Product = Product::with('category')->orderBy('product_id', 'desc')->paginate(env('PER_PAGE_COUNT'));
+            $category = ProductCategory::orderBy('category_name', 'desc')->where(['iStatus'=>1,'isDelete'=>0])->get();
+            return view('admin.product_master.index', compact('Product','category'));
         } catch (\Exception $e) 
         {
             report($e);
@@ -26,6 +28,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
          $request->validate([
+                    'category_id' => 'required',
                     'product_name' => 'required',
                     'product_tag' => 'required'
                 ]);
@@ -45,6 +48,7 @@ class ProductController extends Controller
                 }
 
                 $Product=new Product();
+                $Product->category_id=$request->category_id;
                 $Product->product_name=$request->product_name;
                 $Product->product_photo=$img ?? '';
                 $Product->product_tag=$request->product_tag ?? '';
@@ -77,6 +81,7 @@ class ProductController extends Controller
             {
 
                 $request->validate([
+                    'category_id' => 'required',
                     'product_name' => 'required',
                     'product_tag' => 'required'
                 ]);
@@ -104,6 +109,7 @@ class ProductController extends Controller
         $update = DB::table('product_master')
             ->where(['product_id' => $request->product_id])
             ->update([
+                'category_id' => $request->category_id ?? 0,
                 'product_name' => $request->product_name ?? 0,
                 'product_photo' => $aImg ?? '',
                 'product_tag' => $request->product_tag ?? '',

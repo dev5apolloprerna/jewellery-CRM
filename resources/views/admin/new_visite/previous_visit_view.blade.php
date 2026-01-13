@@ -76,6 +76,36 @@
                                             <div class="col-lg-3 col-md-6">
                                                 <div>
                                                     <span style="color:red;">*</span>Product
+
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                                            type="button" id="productDropBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            Select product(s)
+                                                        </button>
+
+                                                        <div class="dropdown-menu w-100 p-2" aria-labelledby="productDropBtn"
+                                                             style="max-height:250px; overflow:auto;">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" id="productSelectAll">
+                                                                <label class="form-check-label" for="productSelectAll">Select All</label>
+                                                            </div>
+                                                            <div class="dropdown-divider"></div>
+                                                            <div id="productCheckList">
+                                                                <small class="text-muted">Select category first.</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <span class="text-danger error-text" id="error-product_id"></span>
+                                                </div>
+                                            </div>
+
+                                            {{-- ✅ Fix: visit_date used in ajax (your JS references #visit_date) --}}
+                                            <input type="hidden" id="visit_date" value="{{ $feedback->visit_date ?? \Carbon\Carbon::now()->format('Y-m-d') }}">
+
+                                            <!-- <div class="col-lg-3 col-md-6">
+                                                <div>
+                                                    <span style="color:red;">*</span>Product
                                                     <select class="form-control" name="product_id" id="product_id">
                                                         <option value="">Select Product</option>
                                                         @foreach($Products as $cat)
@@ -84,7 +114,7 @@
                                                     </select>
                                                     <span class="text-danger error-text" id="error-product_id"></span>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                            <div class="col-lg-3 col-md-3">
                                                 Employee Name <span style="color:red;">*</span>
                                                 <select class="form-control" name="emp_id" id="emp_id" >
@@ -123,6 +153,25 @@
                                                         <tbody id="productTableBody">
                                                         </tbody>
                                                     </table>
+                                            </div>
+                                            <div>
+                                                <div class="mt-4">
+                                            <h5 class="card-title text-uppercase fw-bold text-black mb-2">Purchased Product List</h5>
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sr. No</th>
+                                                        <th>Product Category</th>
+                                                        <th>Product Name</th>
+                                                        <th>Status</th>
+                                                        <th>Attended By</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="purchasedProductTableBody"></tbody>
+                                            </table>
+                                        </div>
+
                                             </div>
                                     </form>
 
@@ -391,10 +440,20 @@
                 @error('refer_tag_number') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
             <div class="col-lg-4 col-md-6 mt-3">
+                Reference Image <span style="color:red;">*</span>
+                <input type="file" class="form-control" name="refer_image" id="refer_image" accept="image/*">
+                <small class="text-muted">Upload jpg/png/webp</small>
+
+                {{-- preview (optional) --}}
+                <div class="mt-2">
+                    <img id="refer_image_preview" src="" style="display:none; width:80px; height:80px; object-fit:cover;" />
+                </div>
+            </div>
+            <!-- <div class="col-lg-4 col-md-6 mt-3">
                <label for="refer_image_url" class="form-label">Reference Image URL<span style="color:red;"></span></label>
                  <input type="text" name="refer_image_url" class="form-control"  value="{{ old('refer_image_url', $detail->refer_image_url ?? '') }}" placeholder="Enter Reference Tag Number"  maxlength="50" >
                 @error('refer_image_url') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
+            </div> -->
 
             <div class="col-lg-4 col-md-6 mt-3">
               <label for="amount" class="form-label">Amount <span style="color:red;">*</span></label>
@@ -456,6 +515,11 @@
                 @error('delivery_date') <small class="text-danger">{{ $message }}</small> @enderror
 
             </div>
+            <div class="col-lg-6 col-md-6 mt-3" id="notPurchasedReasonWrap" style="display:none;">
+                Reason (Not Purchased) <span style="color:red;">*</span>
+                <textarea class="form-control" name="not_purchased_reason" id="not_purchased_reason" rows="2"
+                          placeholder="Enter reason..."></textarea>
+            </div>
       
     </div>
         <div class="modal-footer mt-3">
@@ -470,104 +534,7 @@
 @endsection
 @section('scripts')
 <script>
-$(document).ready(function () {
-    $('#addProductBtn').click(function (e) {
-        e.preventDefault();
-    $('.error-text').text(''); // Clear previous errors
 
-        $.ajax({
-            url: "{{ route('custProduct.store') }}",
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                cust_id: $('#cust_id').val(),
-                category_id: $('#category_id').val(),
-                product_id: $('#product_id').val(),
-                visit_id: $('#visit_id').val(),
-                emp_id: $('#emp_id').val(),
-                visit_date: $('#visit_date').val(),
-                status: $('#productstatus').val()
-            },
-             success: function (response) {
-                    if (response.success) {
-                        loadProductList();
-                        $('#regForm')[0].reset(); // reset form if needed
-                    }
-                },
-                error: function (xhr) {
-                    if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        $.each(errors, function (key, value) {
-                            $(`#error-${key}`).text(value[0]); // show error next to input
-                        });
-                    }
-                }
-        });
-    });
-
-    function loadProductList() {
-    $.ajax({
-        url: "../customer-product/{{ $id }}",
-        method: 'GET',
-        success: function (products) {
-
-            let html = '';
-            products.forEach((item, index) => {
-
-                const orderStatus =
-                    item.order_details?.order_status?.status ?? item.status;
-
-                // ✅ Check if order is placed
-                const isOrderPlaced = !!item.order_details;
-
-                html += `<tr id="row-${item.cust_pro_id}">
-                    <td>${index + 1}</td>
-                    <td>${item.category.category_name}</td>
-                    <td>${item.product.product_name}</td>
-                    <td>${orderStatus ?? '-'}</td>
-                    <td>${item.employee.emp_name}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm deleteProduct"
-                            data-id="${item.cust_pro_id}">
-                            <i class="fa fa-trash"></i>
-                        </button>
-
-                        ${
-                            isOrderPlaced
-                                ? `<button type="button"
-                                      class="btn btn-success btn-sm editStatus"
-                                      data-id="${item.cust_pro_id}"
-                                      data-bs-toggle="modal"
-                                      data-bs-target="#editModal">
-                                      <i class="fa fa-edit"></i>
-                                   </button>`
-                                : ''
-                        }
-
-                        <button type="button"
-                            class="btn btn-success btn-sm orderProduct"
-                            data-id="${item.cust_pro_id}"
-                            data-name="${item.product.product_name}"
-                            data-product="${item.product_id}"
-                            data-branch="${item.branch_id}"
-                            data-refno="${item.product.product_tag}"
-                            data-branchname="${item.branch.branch_name}"
-                            data-bs-toggle="modal"
-                            data-bs-target="#orderModal">
-                            <i class="fa fa-shopping-cart" title="Order Product"></i>
-                        </button>
-                    </td>
-                </tr>`;
-            });
-
-            $('#productTableBody').html(html);
-        }
-    });
-}
-
-
-    loadProductList(); // Load on page load
-});
 
 function formatDate(dateStr) {
     const date = new Date(dateStr);
@@ -577,7 +544,7 @@ function formatDate(dateStr) {
     return `${day}-${month}-${year}`;
 }
 
-$(document).on('click', '.deleteProduct', function (event) {
+/*$(document).on('click', '.deleteProduct', function (event) {
     event.preventDefault(); // prevent page refresh
 
     let id = $(this).data('id');
@@ -602,7 +569,7 @@ $(document).on('click', '.deleteProduct', function (event) {
         });
     }
 });
-
+*/
 $(document).on('click', '.editStatus', function () {
     let id = $(this).data('id');
     $('#statusproduct_id').val(id);
@@ -667,28 +634,32 @@ $(document).on('click', '.orderProduct', function () {
 
 // When the form is submitted
 $('#orderForm').on('submit', function (e) {
-    e.preventDefault(); // prevent default form submission
+    e.preventDefault();
 
-    if (!confirm('Are you sure you want to order this product?')) {
-        return; // stop if user cancels
-    }
+    toggleNotPurchasedReason(); // ensure correct validation state
 
-    let formData = $(this).serialize(); // serialize all form data
+    if (!confirm('Are you sure you want to order this product?')) return;
+
+    let formData = new FormData(this); // ✅ supports file upload
 
     $.ajax({
         url: '{{ route("custOrder.orderProduct") }}',
         method: 'POST',
         data: formData,
+        processData: false,  // ✅ required for FormData
+        contentType: false,  // ✅ required for FormData
         success: function (response) {
-                if (response.success) {
-                    alert(response.message);
-                    $('#orderModal').modal('hide');
-                    location.reload();             
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-        error: function () {
+            if (response.success) {
+                alert(response.message);
+                $('#orderModal').modal('hide');
+                location.reload();
+                // or loadProductList();
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function (xhr) {
+            console.log(xhr.responseText);
             alert('An unexpected error occurred.');
         }
     });
@@ -723,7 +694,26 @@ $('#orderForm').on('submit', function (e) {
 
 
 
+$(document).on('change', 'select[name="delivery_status"]', function () {
+    toggleNotPurchasedReason();
+});
 
+ function toggleNotPurchasedReason() {
+    let $status = $('select[name="delivery_status"]'); // change name if yours is different
+    let val = ($status.val() || '').toString().toLowerCase();
+    let text = ($status.find('option:selected').text() || '').toLowerCase();
+
+    let isNotPurchased =
+        val === 'not_purchased' || val === '0' || text.includes('not purchased');
+
+    if (isNotPurchased) {
+        $('#notPurchasedReasonWrap').show();
+        $('#not_purchased_reason').prop('required', true);
+    } else {
+        $('#notPurchasedReasonWrap').hide();
+        $('#not_purchased_reason').prop('required', false).val('');
+    }
+}
 </script>
 <script>
     const statusField = document.getElementById('followup_status');
@@ -761,4 +751,226 @@ $('#orderForm').on('submit', function (e) {
         fDate.disabled = false;
     }
 </script>
+
+<script>
+    // ✅ Category-wise products from controller
+    const productsByCategory = @json($productsByCategory);
+
+    function updateProductDropText() {
+        let count = $('.product_cb:checked').length;
+        $('#productDropBtn').text(count ? (count + ' selected') : 'Select product(s)');
+    }
+
+    function renderProductsForCategory(categoryId) {
+        $('#error-product_id').text('');
+
+        if (!categoryId) {
+            $('#productCheckList').html('<small class="text-muted">Select category first.</small>');
+            $('#productSelectAll').prop('checked', false);
+            updateProductDropText();
+            return;
+        }
+
+        const list = productsByCategory[categoryId] || [];
+        if (!list.length) {
+            $('#productCheckList').html('<small class="text-muted">No products found.</small>');
+            $('#productSelectAll').prop('checked', false);
+            updateProductDropText();
+            return;
+        }
+
+        let html = '';
+        list.forEach(p => {
+            html += `
+                <div class="form-check">
+                    <input class="form-check-input product_cb" type="checkbox" value="${p.product_id}" id="prod_${p.product_id}">
+                    <label class="form-check-label" for="prod_${p.product_id}">${p.product_name}</label>
+                </div>
+            `;
+        });
+
+        $('#productCheckList').html(html);
+        $('#productSelectAll').prop('checked', false);
+        updateProductDropText();
+    }
+
+    // ✅ Make global so it can be called anywhere
+    window.loadProductList = function () {
+        $.ajax({
+            url: "../customer-product/{{ $id }}",
+            method: "GET",
+            success: function (products) {
+
+                let normalHtml = '';
+                let purchasedHtml = '';
+                let normalIndex = 1;
+                let purchasedIndex = 1;
+
+                products.forEach((item) => {
+                    const statusText = (item.order_details?.order_status?.status ?? item.status ?? '-');
+                    const statusLower = (statusText || '').toString().trim().toLowerCase();
+
+                    // ✅ SIMPLE rule:
+                    // Purchased table shows ONLY "Purchased"
+                    // Anything else goes back to normal list
+                    const isPurchased = (statusLower === 'purchased');
+
+                    // buttons
+                    let actionButtons = `
+                        <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    `;
+
+                    if (item.order_details !== null) {
+                        actionButtons += `
+                            <button type="button" class="btn btn-success btn-sm editStatus"
+                                data-id="${item.cust_pro_id}" data-bs-toggle="modal" data-bs-target="#editModal">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                        `;
+                    }
+
+                    actionButtons += `
+                        <button type="button" class="btn btn-success btn-sm orderProduct"
+                            data-id="${item.cust_pro_id}"
+                            data-name="${item.product.product_name}"
+                            data-product="${item.product_id}"
+                            data-branch="${item.branch_id}"
+                            data-refno="${item.product.product_tag}"
+                            data-branchname="${item.branch.branch_name}"
+                            data-bs-toggle="modal" data-bs-target="#orderModal">
+                            <i class="fa fa-shopping-cart" title="Order Product"></i>
+                        </button>
+                    `;
+
+                    const row = `
+                        <tr id="row-${item.cust_pro_id}">
+                            <td>__SR__</td>
+                            <td>${item.category?.category_name ?? '-'}</td>
+                            <td>${item.product?.product_name ?? '-'}</td>
+                            <td>${statusText}</td>
+                            <td>${item.employee?.emp_name ?? '-'}</td>
+                            <td>${actionButtons}</td>
+                        </tr>
+                    `;
+
+                    if (isPurchased) {
+                        purchasedHtml += row.replace('__SR__', purchasedIndex++);
+                    } else {
+                        normalHtml += row.replace('__SR__', normalIndex++);
+                    }
+                });
+
+                $('#productTableBody').html(normalHtml);
+                $('#purchasedProductTableBody').html(purchasedHtml);
+            }
+        });
+    };
+
+    $(document).ready(function () {
+
+        // initial load
+        loadProductList();
+
+        // category change -> render products
+        $('#category_id').on('change', function () {
+            renderProductsForCategory($(this).val());
+        });
+
+        // select all
+        $(document).on('change', '#productSelectAll', function () {
+            $('.product_cb').prop('checked', this.checked);
+            updateProductDropText();
+        });
+
+        // single checkbox
+        $(document).on('change', '.product_cb', function () {
+            $('#productSelectAll').prop('checked', $('.product_cb').length === $('.product_cb:checked').length);
+            updateProductDropText();
+        });
+
+        // ✅ Add multiple products (same backend as before: one request per product_id)
+        $('#addProductBtn').on('click', function () {
+            $('.error-text').text('');
+
+            const categoryId = $('#category_id').val();
+            const empId = $('#emp_id').val();
+
+            if (!categoryId) {
+                $('#error-category_id').text('Please select category.');
+                return;
+            }
+            if (!empId) {
+                $('#error-emp_id').text('Please select employee.');
+                return;
+            }
+
+            let productIds = $('.product_cb:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            if (!productIds.length) {
+                $('#error-product_id').text('Please select at least one product.');
+                return;
+            }
+
+            let baseData = {
+                _token: '{{ csrf_token() }}',
+                cust_id: $('#cust_id').val(),
+                category_id: categoryId,
+                visit_id: $('#visit_id').val(),
+                emp_id: empId,
+                visit_date: $('#visit_date').val(),
+                status: $('#productstatus').val()
+            };
+
+            let requests = productIds.map(pid => $.ajax({
+                url: "{{ route('custProduct.store') }}",
+                method: "POST",
+                data: Object.assign({}, baseData, { product_id: pid })
+            }));
+
+            $.when.apply($, requests).done(function () {
+                loadProductList();
+                $('#productSelectAll').prop('checked', false);
+                $('.product_cb').prop('checked', false);
+                updateProductDropText();
+            });
+        });
+
+    });
+
+    // delete
+    $(document).on('click', '.deleteProduct', function (event) {
+        event.preventDefault();
+        let id = $(this).data('id');
+
+        if (confirm('Are you sure you want to delete this product?')) {
+            $.ajax({
+                url: `../customer-product/delete/${id}`,
+                method: 'POST',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function (response) {
+                    if (response.success) {
+                        $(`#row-${id}`).remove();
+                    } else {
+                        alert('Failed to delete the product.');
+                    }
+                },
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+                    alert('An error occurred while deleting the product.');
+                }
+            });
+        }
+    });
+
+    // edit status modal
+    $(document).on('click', '.editStatus', function () {
+        let id = $(this).data('id');
+        $('#statusproduct_id').val(id);
+    });
+</script>
+
 @endsection

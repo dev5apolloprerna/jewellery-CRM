@@ -49,25 +49,39 @@ class CustomerVisiteController extends Controller
             return false;
         }
     }
-    public function create($id)
+   public function create($id)
     {
         $Category = ProductCategory::orderBy('category_id', 'desc')->get();
         $Customer = Customer::findOrFail($id);
 
-        $CustProducts = CustomerProduct::with('category','product','employee','orderDetails')->where(['cust_id'=>$id])->get();
-        $Products = Product::orderBy('product_id', 'desc')->get();
-        $employees = Employee::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>2])->orderBy('emp_name', 'asc')->get();
+        $CustProducts = CustomerProduct::with('category','product','employee','orderDetails')
+            ->where(['cust_id'=>$id])->get();
+
+        // ✅ Only needed fields (for JS)
+        $Products = Product::select('product_id','product_name','category_id')
+            ->orderBy('product_name', 'asc')
+            ->get();
+
+        // ✅ Group products by category for category-wise dropdown
+        $productsByCategory = $Products->groupBy('category_id');
+
+        $employees = Employee::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>2])
+            ->orderBy('emp_name', 'asc')->get();
+
         $closereason = CloseReason::orderBy('close_reason','asc')->get();
+        $color = Color::all();
+        $purity = Purity::all();
+        $orderStatus = OrderStatus::all();
+        $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
+        $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
-            $color = Color::all();
-            $purity = Purity::all();
-            $orderStatus = OrderStatus::all();
-            $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
-            $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
+        return view('admin.new_visite.create', compact(
+            'Category','Customer','id','CustProducts','employees','closereason',
+            'color','branches','vendor','purity','orderStatus',
+            'Products','productsByCategory'
+        ));
+    }
 
-        return view('admin.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus'));
-
-    } 
      public function todayFollowup(Request $request)
     {
         $branchId = $request->branch_id;
@@ -138,18 +152,24 @@ class CustomerVisiteController extends Controller
         return view('admin.new_visite.previous_visit',compact('prVisite'));
 
     }
-    public function previous_visit_view(Request $request,$id)
+   public function previous_visit_view(Request $request,$id)
     {
-        try
-        {
+        try {
             $Category = ProductCategory::orderBy('category_id', 'desc')->get();
             $Followups = VisitDetail::where(['visit_id'=>$id])->orderBy('followup_detail_id','desc')->get();
             $CustProducts = CustomerProduct::with('category','product','employee','orderDetails.OrderStatus')->where(['visit_id'=>$id])->get();
-            $Products = Product::orderBy('product_id', 'desc')->get();
+
+            // ✅ Category-wise products for checkbox dropdown
+            $productsByCategory = Product::select('product_id','product_name','category_id')
+                ->orderBy('product_name','asc')
+                ->get()
+                ->groupBy('category_id');
+
+            $Products = Product::orderBy('product_id', 'desc')->get(); // keep if you use elsewhere
             $employees = Employee::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>2])->orderBy('emp_name', 'asc')->get();
             $feedback = CustomerVisit::with('visitDetails','closereason')->where(['visit_id'=>$id])->latest()->first();
             $Customer = Customer::findOrFail($feedback->cust_id);
-            
+
             $color = Color::all();
             $closereason = CloseReason::orderBy('close_reason','asc')->get();
             $purity = Purity::all();
@@ -157,14 +177,16 @@ class CustomerVisiteController extends Controller
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
-        
-            return view('admin.new_visite.previous_visit_view', compact('Category','Customer','id','Followups','Products','CustProducts','employees','feedback','closereason','branches','color','vendor','purity','orderStatus'));
-       } catch (\Exception $e) 
-        {
+            return view('admin.new_visite.previous_visit_view', compact(
+                'Category','Customer','id','Followups','Products','CustProducts','employees','feedback',
+                'closereason','branches','color','vendor','purity','orderStatus','productsByCategory'
+            ));
+        } catch (\Exception $e) {
             report($e);
             return false;
         }
     }
+
     public function view_visit(Request $request,$id)
     {
 
