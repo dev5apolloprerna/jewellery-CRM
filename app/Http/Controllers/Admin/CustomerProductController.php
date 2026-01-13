@@ -88,7 +88,7 @@ class CustomerProductController extends Controller
                     'product_id' => 'required',
                     'emp_id' => 'required',
                     // 'quantity' => 'required|integer',
-                    'status' => 'required',
+                    // 'status' => 'required',
                 ]);
 
             if ($validator->fails()) {

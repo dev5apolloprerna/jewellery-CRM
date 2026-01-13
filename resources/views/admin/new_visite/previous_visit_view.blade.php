@@ -155,7 +155,7 @@
                                                     </table>
                                             </div>
                                             <div>
-                                                <div class="mt-4">
+                                        <div class="mt-4">
                                             <h5 class="card-title text-uppercase fw-bold text-black mb-2">Purchased Product List</h5>
                                             <table class="table table-bordered">
                                                 <thead>
@@ -171,8 +171,7 @@
                                                 <tbody id="purchasedProductTableBody"></tbody>
                                             </table>
                                         </div>
-
-                                            </div>
+                                    </div>
                                     </form>
 
 
@@ -423,8 +422,8 @@
             </div>
 
             <div class="col-lg-4 col-md-6 mt-3">
-                <label for="weight" class="form-label">Weight <span style="color:red;">*</span></label>
-                <input type="text" step="0.01" name="weight" class="form-control" value="{{ old('weight', $detail->weight ?? '') }}" maxlength="50" placeholder="Enter Weight"  required>
+                <label for="weight" class="form-label">Weight </label>
+                <input type="text" step="0.01" name="weight" class="form-control" value="{{ old('weight', $detail->weight ?? '') }}" maxlength="50" placeholder="Enter Weight" >
                 @error('weight') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
 
@@ -510,7 +509,7 @@
             </div>
 
             <div class="col-lg-4 col-md-6 mt-3">
-              <label for="delivery_date" class="form-label">Delivery Date <span style="color:red;">*</span></label>
+              <label for="delivery_date" class="form-label">Delivery Date </label>
                 <input type="date" name="delivery_date" class="form-control" placeholder="Enter Given To" value="{{ old('delivery_date', $detail->delivery_date ?? '') }}" maxlength="50" >
                 @error('delivery_date') <small class="text-danger">{{ $message }}</small> @enderror
 

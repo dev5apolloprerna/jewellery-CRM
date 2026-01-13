@@ -99,6 +99,7 @@ class EMPCustomerVisitController extends Controller
         $Products = Product::orderBy('product_id', 'desc')->get();
         $employees = Employee::where(['iStatus'=>1,'isDelete'=>0,'branch_id'=>$branch_id,'role_id'=>2])->orderBy('emp_name', 'asc')->get();
         $closereason = CloseReason::orderBy('close_reason','asc')->get();
+        $productsByCategory = $Products->groupBy('category_id');
 
             $color = Color::all();
             $purity = Purity::all();
@@ -107,7 +108,7 @@ class EMPCustomerVisitController extends Controller
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
-        return view('employee.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus'));
+        return view('employee.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus','productsByCategory'));
 
     } 
      public function product($id)
@@ -168,8 +169,12 @@ class EMPCustomerVisitController extends Controller
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
+            $productsByCategory = Product::select('product_id','product_name','category_id')
+                ->orderBy('product_name','asc')
+                ->get()
+                ->groupBy('category_id');
          
-            return view('employee.new_visite.previous_visit_view', compact('Category','Customer','id','Followups','Products','CustProducts','employees','feedback','closereason','branches','vendor','color','purity','orderStatus'));
+            return view('employee.new_visite.previous_visit_view', compact('Category','Customer','id','Followups','Products','CustProducts','employees','feedback','closereason','branches','vendor','color','purity','orderStatus','productsByCategory'));
        } catch (\Exception $e) 
         {
             report($e);

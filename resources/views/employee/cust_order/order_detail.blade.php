@@ -87,7 +87,7 @@
                                                                         <td width="7%">{{ $product->orderDetails->refer_tag_number ?? '-' }}</td>
                                                                         <td width="7%">
                                                                             @if(optional($product->orderDetails)->refer_image_url != null)
-                                                                            <a href="{{ $product->orderDetails->refer_image_url ?? '-' }}" target='_blank'>Image</a>
+                                                                            <img src="{{ asset($product->orderDetails->refer_image_url) }}" style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
                                                                             @else
                                                                             {{ '-' }}
                                                                             @endif
