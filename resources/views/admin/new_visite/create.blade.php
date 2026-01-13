@@ -169,7 +169,7 @@
                                     </div>
                                 @endif
 
-<hr>
+                            <hr>
                             <div class="border p-3 mb-4">
                                 <h5 class="card-title text-uppercase fw-bold text-black mb-2">Next Followup</h6>
                                     <!-- folloowup form start -->
@@ -214,7 +214,7 @@
                                             </div>
 
 
-                                        <div class="col-lg-3 col-md-6">
+                                            <div class="col-lg-3 col-md-6">
                                                 <label>Remark</label>
                                                 <input type="text" name="remark" class="form-control" value="{{ $feedback->remark ?? '' }}">
                                                 @error('remark')
@@ -222,7 +222,7 @@
                                                     @enderror
                                             </div>
 
-                                        <div class="col-lg-3 col-md-6">
+                                            <div class="col-lg-3 col-md-6">
                                                 <label>Visit Date</label>
                                                 <input type="date" name="visit_date" class="form-control" value="{{ old('visit_date', \Carbon\Carbon::now()->format('Y-m-d')) }}">
                                                 @error('visit_date')
@@ -945,21 +945,40 @@ function loadProductList() {
 
                 // ✅ buttons (use your same buttons)
                 let actionButtons = `
-                    <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                    <button type="button" class="btn btn-success btn-sm orderProduct"
-                        data-id="${item.cust_pro_id}"
-                        data-name="${item.product.product_name}"
-                        data-product="${item.product_id}"
-                        data-branch="${item.branch_id}"
-                        data-refno="${item.product.product_tag}"
-                        data-branchname="${item.branch.branch_name}"
-                        data-bs-toggle="modal"
-                        data-bs-target="#orderModal">
-                        <i class="fa fa-shopping-cart"></i>
-                    </button>
-                `;
+                            <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        `;
+
+                        // ✅ show Edit only if ordered (order_details exists)
+                        if (item.order_details !== null) {
+                            actionButtons += `
+                                <button type="button"
+                                    class="btn btn-success btn-sm editStatus"
+                                    data-id="${item.cust_pro_id}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            `;
+                        }
+
+                        // ✅ Order button always visible (ordered or not ordered)
+                        actionButtons += `
+                            <button type="button"
+                                class="btn btn-success btn-sm orderProduct"
+                                data-id="${item.cust_pro_id}"
+                                data-name="${item.product?.product_name ?? ''}"
+                                data-product="${item.product_id}"
+                                data-branch="${item.branch_id}"
+                                data-refno="${item.product?.product_tag ?? ''}"
+                                data-branchname="${item.branch?.branch_name ?? ''}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#orderModal">
+                                <i class="fa fa-shopping-cart" title="Order Product"></i>
+                            </button>
+                        `;
+
 
                 let row = `
                     <tr id="row-${item.cust_pro_id}">

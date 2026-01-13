@@ -101,7 +101,7 @@
                                                                                     <select class="form-control" name="status" id="Editreview_status">
                                                                                         <option value="">Select Status</option>
                                                                                     @foreach ($orderStatus as $status)
-                                                                                        <option value="{{ $status->order_status_id  }}" {{ old('delivery_status', $detail->delivery_status ?? '') == $status->order_status_id  ? 'selected' : '' }}>
+                                                                                    <option value="{{ $status->order_status_id  }}" {{ old('delivery_status', $detail->delivery_status ?? '') == $status->order_status_id  ? 'selected' : '' }}>
                                                                                             {{ $status->status }}
                                                                                         </option>
                                                                                     @endforeach

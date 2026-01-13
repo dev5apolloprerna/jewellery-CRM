@@ -81,17 +81,17 @@
                                                                         <td width="5%">{{ $product->orderDetails->size ?? '-' }}</td>
                                                                         <td width="8%">{{ $product->orderDetails->vendor->contact_person ?? '-' }}</td>
                                                                         <td width="10%">    {{ optional($product->orderDetails)->delivery_date ? date('d-m-Y', strtotime($product->orderDetails->delivery_date)) : '-' }}
-</td>
+                                                                        </td>
                                                                         <td width="7%">{{ $product->orderDetails->rate_type ?? '-' }}</td>
                                                                         <td width="7%">{{ $product->orderDetails->rate_fix_open ?? '-' }}</td>
                                                                         <td width="7%">{{ $product->orderDetails->refer_tag_number ?? '-' }}</td>
                                                                         <td width="10%">
                                                                             @if(optional($product->orderDetails)->refer_image_url != null)
-                                                                            <a href="{{ $product->orderDetails->refer_image_url ?? '-' }}" target='_blank'>Image</a>
+                                                                            <img src="{{ asset($product->orderDetails->refer_image_url) }}" style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
                                                                             @else
-                                                                            {{ '-' }}
+                                                                                {{'-'}}
                                                                             @endif
-                                                                            </td>
+                                                                        </td>
                                                                         <td width="10%">{{ $product->orderDetails->OrderStatus->status ?? '-' }}</td>
                                                                         <td width="10%">{{ $product->employee->emp_name }}</td>
                                                                     </tr>
