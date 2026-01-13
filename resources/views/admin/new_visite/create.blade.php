@@ -61,6 +61,33 @@
                                             <div class="col-lg-3 col-md-6">
                                                 <div>
                                                     Product <span style="color:red;">*</span>
+
+                                                    <div class="dropdown">
+                                                        <button type="button"
+                                                                class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                                                id="productDropBtn"
+                                                                data-bs-toggle="dropdown"
+                                                                data-bs-auto-close="outside"
+                                                                aria-expanded="false"
+                                                                disabled>
+                                                            Select category first
+                                                        </button>
+
+                                                        <div class="dropdown-menu w-100 p-2"
+                                                             aria-labelledby="productDropBtn"
+                                                             id="productDropdownMenu"
+                                                             style="max-height:220px; overflow:auto;">
+                                                            <div class="text-muted">Select category first</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <span class="text-danger error-text" id="error-product_id"></span>
+                                                </div>
+                                            </div>
+
+                                            <!-- <div class="col-lg-3 col-md-6">
+                                                <div>
+                                                    Product <span style="color:red;">*</span>
                                                     <select class="form-control" name="product_id" id="product_id">
                                                         <option value="">Select Product</option>
                                                         @foreach($Products as $cat)
@@ -69,7 +96,7 @@
                                                     </select>
                                                     <span class="text-danger error-text" id="error-product_id"></span>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                            <div class="col-lg-3 col-md-3">
                                                 Employee Name <span style="color:red;">*</span>
                                                 <select class="form-control" name="emp_id" id="emp_id" >
@@ -108,7 +135,26 @@
                                                         </thead>
                                                         <tbody id="productTableBody">
                                                         </tbody>
+
                                                     </table>
+                                            </div>
+                                            <div class="mt-3"> 
+                                                <h5 class="card-title text-uppercase fw-bold text-black mb-2">Purchased Products</h5>
+
+                                                    <table class="table nowrap align-middle" style="width:100%">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Category</th>
+                                                                <th>Product</th>
+                                                                <th>Delivery Status</th>
+                                                                <th>Employee</th>
+                                                                <th>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="purchasedTableBody"></tbody>
+                                                    </table>
+
                                             </div>
                                     </form>
 
@@ -270,8 +316,9 @@
 <!-- Order Product Modal -->
 <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <form id="orderForm">
-        @csrf
+    <form id="orderForm" enctype="multipart/form-data">
+    @csrf
+
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="orderModalLabel">Order Product</h5>
@@ -327,8 +374,8 @@
             </div>
 
             <div class="col-lg-4 col-md-6 mt-3">
-                <label for="weight" class="form-label">Weight <span style="color:red;">*</span></label>
-                <input type="text" step="0.01" name="weight" class="form-control" value="{{ old('weight', $detail->weight ?? '') }}" maxlength="50" placeholder="Enter Weight"  required>
+                <label for="weight" class="form-label">Weight </label>
+                <input type="text" step="0.01" name="weight" class="form-control" value="{{ old('weight', $detail->weight ?? '') }}" maxlength="50" placeholder="Enter Weight">
                 @error('weight') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
 
@@ -342,11 +389,21 @@
                <label for="refer_tag_number" class="form-label">Reference Tag Number <span style="color:red;"></span></label>
                  <input type="text" name="refer_tag_number" id="orderrefno" class="form-control"  value="{{ old('refer_tag_number', $detail->refer_tag_number ?? '') }}" placeholder="Enter Reference Tag Number"  maxlength="50" >
                 @error('refer_tag_number') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
+            </div><!-- 
             <div class="col-lg-4 col-md-6 mt-3">
                <label for="refer_image_url" class="form-label">Reference Image URL<span style="color:red;"></span></label>
                  <input type="text" name="refer_image_url" class="form-control"  value="{{ old('refer_image_url', $detail->refer_image_url ?? '') }}" placeholder="Enter Reference Tag Number"  maxlength="50" >
                 @error('refer_image_url') <small class="text-danger">{{ $message }}</small> @enderror
+            </div> -->
+            <div class="col-lg-4 col-md-6 mt-3">
+                Reference Image <span style="color:red;">*</span>
+                <input type="file" class="form-control" name="refer_image" id="refer_image" accept="image/*">
+                <small class="text-muted">Upload jpg/png/webp</small>
+
+                {{-- preview (optional) --}}
+                <div class="mt-2">
+                    <img id="refer_image_preview" src="" style="display:none; width:80px; height:80px; object-fit:cover;" />
+                </div>
             </div>
 
           
@@ -407,11 +464,17 @@
             </div>
 
             <div class="col-lg-4 col-md-6 mt-3">
-              <label for="delivery_date" class="form-label">Delivery Date <span style="color:red;">*</span></label>
+              <label for="delivery_date" class="form-label">Delivery Date </label>
                 <input type="date" name="delivery_date" class="form-control" placeholder="Enter Given To" value="{{ old('delivery_date', $detail->delivery_date ?? '') }}" maxlength="50" >
                 @error('delivery_date') <small class="text-danger">{{ $message }}</small> @enderror
 
             </div>
+            <div class="col-lg-6 col-md-6 mt-3" id="notPurchasedReasonWrap" style="display:none;">
+                Reason (Not Purchased) <span style="color:red;">*</span>
+                <textarea class="form-control" name="not_purchased_reason" id="not_purchased_reason" rows="2"
+                          placeholder="Enter reason..."></textarea>
+            </div>
+
       
     </div>
         <div class="modal-footer mt-3">
@@ -628,33 +691,37 @@ $(document).on('click', '.orderProduct', function () {
 
 // When the form is submitted
 $('#orderForm').on('submit', function (e) {
-    e.preventDefault(); // prevent default form submission
+    e.preventDefault();
 
-    if (!confirm('Are you sure you want to order this product?')) {
-        return; // stop if user cancels
-    }
+    toggleNotPurchasedReason(); // ensure correct validation state
 
-    let formData = $(this).serialize(); // serialize all form data
+    if (!confirm('Are you sure you want to order this product?')) return;
+
+    let formData = new FormData(this); // ✅ supports file upload
 
     $.ajax({
         url: '{{ route("custOrder.orderProduct") }}',
         method: 'POST',
         data: formData,
+        processData: false,  // ✅ required for FormData
+        contentType: false,  // ✅ required for FormData
         success: function (response) {
-                if (response.success) {
-                    alert(response.message);
-                    $('#orderModal').modal('hide');
-                                        location.reload();             
-   // loadProductList(); // fallback
-                  } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-        error: function () {
+            if (response.success) {
+                alert(response.message);
+                $('#orderModal').modal('hide');
+                location.reload();
+                // or loadProductList();
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function (xhr) {
+            console.log(xhr.responseText);
             alert('An unexpected error occurred.');
         }
     });
 });
+
 
 </script>
 <script>
@@ -693,4 +760,238 @@ $('#orderForm').on('submit', function (e) {
         fDate.disabled = false;
     }
 </script>
+
+<script>
+    // ✅ Category wise products map from controller
+    const productsByCategory = @json($productsByCategory);
+
+   
+
+    function updateProductDropText() {
+        let count = $('.product_cb:checked').length;
+        $('#productDropBtn').text(count ? (count + ' selected') : 'Select product(s)');
+    }
+
+    function renderProductsByCategory(catId) {
+        const menu = $('#productDropdownMenu');
+
+        // reset
+        menu.html('');
+        $('#productSelectAll').prop('checked', false);
+        updateProductDropText();
+
+        if (!catId) {
+            $('#productDropBtn').prop('disabled', true).text('Select category first');
+            menu.html('<div class="text-muted">Select category first</div>');
+            return;
+        }
+
+        const list = productsByCategory[catId] || [];
+
+        $('#productDropBtn').prop('disabled', false).text('Select product(s)');
+
+        if (list.length === 0) {
+            menu.html('<div class="text-muted">No products in this category</div>');
+            return;
+        }
+
+        let html = `
+            <label class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="productSelectAll">
+                <span class="form-check-label">Select All</span>
+            </label>
+            <hr class="my-2">
+        `;
+
+        list.forEach(p => {
+            html += `
+                <label class="form-check">
+                    <input class="form-check-input product_cb" type="checkbox"
+                           value="${p.product_id}" data-name="${p.product_name}">
+                    <span class="form-check-label">${p.product_name}</span>
+                </label>
+            `;
+        });
+
+        menu.html(html);
+    }
+
+    $(document).ready(function () {
+
+        // ✅ load list on page load
+        loadProductList();
+
+        // ✅ when category changes -> show only that category products
+        $(document).on('change', '#category_id', function () {
+            $('.error-text').text('');
+            renderProductsByCategory($(this).val());
+        });
+
+        // ✅ select all
+        $(document).on('change', '#productSelectAll', function () {
+            $('.product_cb').prop('checked', this.checked);
+            updateProductDropText();
+        });
+
+        // ✅ update button text when selecting products
+        $(document).on('change', '.product_cb', function () {
+            $('#productSelectAll').prop('checked', $('.product_cb').length === $('.product_cb:checked').length);
+            updateProductDropText();
+        });
+
+        // ✅ Add button: same as your current working store (single product_id), but run for each checked product
+        $(document).on('click', '#addProductBtn', function (e) {
+            e.preventDefault();
+            $('.error-text').text('');
+
+            let categoryId = $('#category_id').val();
+            if (!categoryId) {
+                $('#error-category_id').text('Please select category.');
+                return;
+            }
+
+            let productIds = $('.product_cb:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            if (productIds.length === 0) {
+                $('#error-product_id').text('Please select at least one product.');
+                return;
+            }
+
+            let baseData = {
+                _token: '{{ csrf_token() }}',
+                cust_id: $('#cust_id').val(),
+                category_id: categoryId,
+                visit_id: $('#visit_id').val(),
+                emp_id: $('#emp_id').val(),
+                visit_date: $('#visit_date').val(),
+                status: $('#productstatus').val()
+            };
+
+            let requests = productIds.map(pid => $.ajax({
+                url: "{{ route('custProduct.store') }}",
+                method: "POST",
+                data: Object.assign({}, baseData, { product_id: pid })
+            }));
+
+            $.when.apply($, requests).done(function () {
+                loadProductList();
+
+                // reset selections
+                $('#productDropBtn').text('Select product(s)');
+                $('#productDropdownMenu').html('<div class="text-muted">Select category first</div>');
+                $('#productDropBtn').prop('disabled', true).text('Select category first');
+                $('#category_id').val('');
+
+            }).fail(function (xhr) {
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors || {};
+                    $.each(errors, function (key, value) {
+                        $('#error-' + key).text(value[0]);
+                    });
+                } else {
+                    alert('Something went wrong while adding products.');
+                }
+            });
+        });
+
+    });
+
+    function toggleNotPurchasedReason() {
+    let $status = $('select[name="delivery_status"]'); // change name if yours is different
+    let val = ($status.val() || '').toString().toLowerCase();
+    let text = ($status.find('option:selected').text() || '').toLowerCase();
+
+    let isNotPurchased =
+        val === 'not_purchased' || val === '0' || text.includes('not purchased');
+
+    if (isNotPurchased) {
+        $('#notPurchasedReasonWrap').show();
+        $('#not_purchased_reason').prop('required', true);
+    } else {
+        $('#notPurchasedReasonWrap').hide();
+        $('#not_purchased_reason').prop('required', false).val('');
+    }
+}
+
+$(document).on('change', 'select[name="delivery_status"]', function () {
+    toggleNotPurchasedReason();
+});
+$(document).on('change', '#refer_image', function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    $('#refer_image_preview').attr('src', url).show();
+});
+
+// purchased product listing 
+function loadProductList() {
+    $.ajax({
+        url: "{{ route('newVisite.product', $id) }}",
+        type: "GET",
+        success: function (products) {
+
+            let htmlProduct = '';
+            let htmlPurchased = '';
+            let i1 = 1, i2 = 1;
+
+            products.forEach(function (item) {
+
+                // ✅ purchased condition (keep simple)
+                let ds = item.order_details ? item.order_details.delivery_status : null;
+                let isPurchased = (ds == 9 || (ds && ds.toString().toLowerCase() === 'Purchased'));
+
+                // ✅ buttons (use your same buttons)
+                let actionButtons = `
+                    <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm orderProduct"
+                        data-id="${item.cust_pro_id}"
+                        data-name="${item.product.product_name}"
+                        data-product="${item.product_id}"
+                        data-branch="${item.branch_id}"
+                        data-refno="${item.product.product_tag}"
+                        data-branchname="${item.branch.branch_name}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#orderModal">
+                        <i class="fa fa-shopping-cart"></i>
+                    </button>
+                `;
+
+                let row = `
+                    <tr id="row-${item.cust_pro_id}">
+                        <td>__NO__</td>
+                        <td>${item.category ? item.category.category_name : '-'}</td>
+                        <td>${item.product ? item.product.product_name : '-'}</td>
+                        <td>${item.order_details?.order_status?.status ?? item.status}</td>
+                        <td>${item.employee ? item.employee.emp_name : '-'}</td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+
+                if (isPurchased) {
+                    htmlPurchased += row.replace('__NO__', i2++);
+                } else {
+                    htmlProduct += row.replace('__NO__', i1++);
+                }
+            });
+
+            if (htmlProduct === '') {
+                htmlProduct = `<tr><td colspan="6" class="text-center text-muted">No products</td></tr>`;
+            }
+            if (htmlPurchased === '') {
+                htmlPurchased = `<tr><td colspan="6" class="text-center text-muted">No purchased products</td></tr>`;
+            }
+
+            $('#productTableBody').html(htmlProduct);
+            $('#purchasedTableBody').html(htmlPurchased);
+        }
+    });
+}
+
+</script>
+
 @endsection

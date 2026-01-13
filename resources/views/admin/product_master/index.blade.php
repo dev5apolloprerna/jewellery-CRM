@@ -27,6 +27,28 @@
                                             <div class="modal-body">
                                                
                                                 <div class="mt-4 mb-3">
+                                                    Category <span style="color:red;">*</span>
+                                                     <select class="form-control" name="category_id" id="category_id" required>
+                                                    <option value="">Select Category</option>
+                                                    @foreach ($category as $cat)
+                                                        <option value="{{ $cat->category_id }}" {{ old('category_id', $custProduct->category_id ?? '') == $cat->category_id ? 'selected' : '' }}>
+                                                            {{ $cat->category_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('category_id') <small class="text-danger">{{ $message }}</small> @enderror
+
+                                                    @if($errors->has('product_name'))
+                                                         <span class="text-danger">
+                                                            {{ $errors->first('product_name') }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+
+                                            </div>
+                                            <div class="modal-body">
+                                               
+                                                <div class="mt-4 mb-3">
                                                     Product Name <span style="color:red;">*</span>
                                                     <input type="text" id="product_name" name="product_name" class="form-control"  value="{{ old('product_name')}}" placeholder="Enter Product Name" maxlength="100" required>
                                                     @if($errors->has('product_name'))
@@ -85,6 +107,7 @@
                                     <thead>
                                         <tr>
                                             <th scope="col">No</th>
+                                            <th scope="col">Category</th>
                                             <th scope="col">Product Name</th>
                                             <th scope="col">Product Image</th>
                                             <th scope="col">Product Tag</th>
@@ -97,6 +120,7 @@
                                             <tr>
                                                 <td>
                                                     {{ $i + $Product->perPage() * ($Product->currentPage() - 1) }}
+                                                <td>{{ $prod->category->category_name ?? '-' }}</td>
                                                 <td>{{ $prod->product_name }}</td>
                                                  <td>
                                                     @php
@@ -154,6 +178,16 @@
                                 @csrf
                                 <input type="hidden" name="product_id" id="product_id" value="">
                                 <div class="modal-body">
+                                    <div class="mb-3">
+                                            Category <span style="color:red;">*</span>
+                                            <select class="form-control" name="category_id" id="Editcategory" required>
+                                                <option value="">Select Category</option>
+                                                @foreach ($category as $cat)
+                                                    <option value="{{ $cat->category_id }}">{{ $cat->category_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
                                     <div class="mb-3">
                                         Product Name <span style="color:red;">*</span>
                                         <input type="text" name="product_name" class="form-control"
@@ -262,8 +296,10 @@
 
                         $('#Editcustname').val(obj.product_name);
                         $('#product_id').val(id);
+                        $('#Editcategory').val(obj.category_id); // ✅ set category here
                         $("#hiddenphoto").val(obj.product_photo);
                         $('#editphoto').attr('src', imageUrl);
+
                         $('#EditproductTag').val(obj.product_tag);
 
                     }

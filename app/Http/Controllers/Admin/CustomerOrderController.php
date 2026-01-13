@@ -264,12 +264,23 @@ public function purchased(Request $request,$date = null)
             if ($existingOrderDetail) 
             {
 
+                    if ($request->hasFile('refer_image')) 
+                    {
+                        $file = $request->file('refer_image');
+                        $name = time() . '_' . $file->getClientOriginalName();
+                        $file->move(public_path('OrderRef'), $name);
+
+                        $existingOrderDetail->refer_image_url = 'OrderRef/' . $name; // keep same DB column
+                        $existingOrderDetail->save();
+                    }
+
+
+
                     $existingOrderDetail->karat=$request->karat;
                     $existingOrderDetail->color_id=$request->color_id;
                     $existingOrderDetail->weight=$request->weight;
                     $existingOrderDetail->size=$request->size;
                     $existingOrderDetail->refer_tag_number=$request->refer_tag_number;
-                    $existingOrderDetail->refer_image_url=$request->refer_image_url;
                     $existingOrderDetail->status=$request->status;
                     $existingOrderDetail->amount=$request->amount;
                     $existingOrderDetail->net_total=$request->amount;
@@ -277,6 +288,7 @@ public function purchased(Request $request,$date = null)
                     $existingOrderDetail->remark = $request->remark;
                     $existingOrderDetail->delivery_date = $request->delivery_date;
                     $existingOrderDetail->delivery_status = $request->delivery_status;
+                    $existingOrderDetail->not_purchased_reason = $request->not_purchased_reason;
                     $existingOrderDetail->rate_type = $request->rate_type;
                     $existingOrderDetail->rate_fix_open = $request->rate_fix_open;
                     $existingOrderDetail->save();
@@ -332,6 +344,7 @@ public function purchased(Request $request,$date = null)
                 return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }*/
     }
+
     public function store(Request $request)
     {
          $request->validate([
