@@ -68,7 +68,7 @@
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $cust->branch->branch_name ?? 'N/A' }}</td>
-                                                <td>{{ $cust->customer_name }}</td>
+                                                <td><h6><a href="{{ route('EMPcustomer.history', $cust->customer_id) }}">{{ $cust->customer_name }}</a></h6></td>
                                                 <td>{{ $cust->customer_phone }}</td>
                                                 <td>{{ $cust->customer_email }}</td>
                                                 <td>{{ $cust->refer_by }}</td>

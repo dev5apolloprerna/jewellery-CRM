@@ -18,7 +18,7 @@
                             justify-content: space-between;">
                                 <h5 class="card-title mb-0">Monthly Conversion Report</h5>
                             </div>
-                             <div class="card-body">
+                             <!-- <div class="card-body">
                                 <form method="POST" action="{{ route('reports.monthly_conversion') }}" id="myForm">
                                     @csrf
                                      <div class="row"> 
@@ -54,17 +54,14 @@
                                         </div>
                                     </div>
                                 </form>
-                            </div> 
-                        </div>
+                            </div>  -->
                        
-                    </div>
-                </div>
 
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-                                <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
+                                <table id="monthlyTable" class="table table-bordered table-striped nowrap align-middle" style="width:100%">
                                     <thead>
                                         <tr>
                                             <th>Month</th>
@@ -100,26 +97,86 @@
             </div>
         </div>
     </div>
-
+ </div>
+                       
+    </div>
+</div>
 @endsection
 
 @section('scripts')
-    <script>
-     function genrateToexcel()
-    {
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+<style>
+    #monthlyTable_filter label { font-weight: 600; margin-bottom: 0; }
+    #monthlyTable_filter input { width: 260px; }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#monthlyTable').DataTable({
+            responsive: true,
+            pageLength: 25,
+            ordering: true,
+            order: [[0, 'desc']], // month sort
+
+            // ✅ Search LEFT, Button RIGHT
+            dom:
+                "<'row mb-2 align-items-center'" +
+                    "<'col-md-6 d-flex justify-content-start'f>" +
+                    "<'col-md-6 d-flex justify-content-end'B>" +
+                ">" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-2'<'col-md-5'i><'col-md-7'p>>",
+
+            // ✅ Right side excel export button (route based)
+            buttons: [
+                {
+                    text: 'Export to Excel',
+                    className: 'btn btn-primary',
+                    action: function () {
+                        genrateToexcel();
+                    }
+                }
+            ],
+
+            initComplete: function () {
+                const $input = $('#monthlyTable_filter input');
+                $input.addClass('form-control form-control-sm');
+                $('#monthlyTable_filter label').addClass('d-flex align-items-center gap-2 mb-0');
+            }
+        });
+
+        // ✅ space between dt buttons if you add more later
+        $('.dt-buttons .btn').addClass('ms-2');
+    });
+
+    function genrateToexcel() {
         var Month = $('#month').val();
         var Year = $('#year').val();
-        var Url = "{{route('reports.export_monthly_conversion',[":Month",":Year"])}}";
+
+        var Url = "{{ route('reports.export_monthly_conversion',[":Month",":Year"]) }}";
         Url = Url.replace(':Month', Month ? Month : '0');
-        Url = Url.replace(':Year', Year ? Year : '0' );
-    
+        Url = Url.replace(':Year', Year ? Year : '0');
+
         window.location.href = Url;
     }
-          function myFunction() 
-        {
-            $('#month').val('');
-            $('#year').removeAttr('value');
-        }
 
-    </script>
-@endsection
+    function myFunction() {
+        $('#month').val('');
+        $('#year').val('');
+        // optional: submit after reset
+        // $('#myForm').submit();
+    }
+</script>
+@endsection 

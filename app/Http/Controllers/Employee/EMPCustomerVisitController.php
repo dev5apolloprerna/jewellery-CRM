@@ -104,11 +104,12 @@ class EMPCustomerVisitController extends Controller
             $color = Color::all();
             $purity = Purity::all();
             $orderStatus = OrderStatus::all();
-
+            $notPurchasereason = CloseReason::where(['type'=>'purchase'])->orderBy('close_reason','asc')->get();
+        
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
-        return view('employee.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus','productsByCategory'));
+        return view('employee.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus','productsByCategory','notPurchasereason'));
 
     } 
      public function product($id)

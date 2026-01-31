@@ -268,7 +268,7 @@ public function destroy(Request $request)
 
 
 
-                $customer = Customer::with(['cast','branch'])->findOrFail($id);
+                $customer = Customer::with(['cast','branch','custCat'])->findOrFail($id);
 
                 // All visits for this customer (newest first) + followups (hasMany) + close reason
                 $visits = CustomerVisit::where('cust_id', $id)

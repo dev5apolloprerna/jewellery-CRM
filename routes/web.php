@@ -239,6 +239,8 @@ Route::post('admin/updatepassword/{id?}', [EmployeeMasterController::class, 'upd
 Route::resource('admin/vendorMaster', VendorMasterController::class);
 Route::post('admin/vendorMaster/delete', [VendorMasterController::class, 'destroy'])->name('vendorMaster.destroy');
 
+Route::post('/vendor-master/store-ajax', [VendorMasterController::class, 'storeAjax'])
+    ->name('vendor.storeAjax');
 
 //Customer master
 
