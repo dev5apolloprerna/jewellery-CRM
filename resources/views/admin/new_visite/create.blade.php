@@ -2,1015 +2,1013 @@
 @section('title', 'Customer Detail')
 @section('content')
 
+<style>
+  .tabs-wrap{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tab-link{
+    text-decoration:none;border:1px solid #eee;background:#fff;padding:10px 14px;border-radius:12px;
+    font-weight:600;color:#374151;display:flex;align-items:center;gap:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,.04);transition:.15s;
+  }
+  .tab-link:hover{transform:translateY(-1px)}
+  .tab-link.active{background:#5c2323;border-color:#5c2323;color:#fff}
+  .tab-ic{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:#f3f4f6;color:#111827}
+  .tab-link.active .tab-ic{background:rgba(255,255,255,.18);color:#fff}
+  #notPurchasedReasonWrap{display:none;}
+</style>
+
 <div class="main-content">
-    <div class="page-content">
-        <div class="container-fluid">
+  <div class="page-content">
+    <div class="container-fluid">
 
-            {{-- Alert Messages --}}
-            @include('common.alert')
+@php
+  $r = \Illuminate\Support\Facades\Route::currentRouteName();
+  $cid = $Customer->customer_id ?? $id;
+  $latest = $Customer->latestVisit ?? null;
 
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
+  // Order Id for payment tab (optional)
+  $orderId = null;
+  if(isset($order) && !empty($order->order_id)){
+    $orderId = $order->order_id;
+  }
+@endphp
 
-                        <div class="d-flex justify-content-between card-header">
-                            <h5 class="card-title text-uppercase fw-bold text-black mb-0">Customer Detail</h5>
-                        </div>
+<div class="tabs-wrap">
+  <a class="tab-link {{ $r=='customer.history' ? 'active' : '' }}"
+     href="{{ route('customer.history', $cid) }}">
+    <span class="tab-ic"><i class="fa fa-eye"></i></span> History
+  </a>
 
-                        <div class="card-body">
+  @if($latest)
+    @if(($latest->followup_status ?? 0) == 1)
+      <a class="tab-link {{ $r=='newVisite.create' ? 'active' : '' }}"
+         href="{{ route('newVisite.create', $cid) }}">
+        <span class="tab-ic"><i class="fas fa-plus-circle"></i></span> New Visit
+      </a>
+    @endif
+  @else
+    <a class="tab-link {{ $r=='newVisite.create' ? 'active' : '' }}"
+       href="{{ route('newVisite.create', $cid) }}">
+      <span class="tab-ic"><i class="fas fa-plus-circle"></i></span> New Visit
+    </a>
+  @endif
 
-                            {{-- Client Data List --}}
-                            <div class="border p-3 mb-4">
-                                <h6 class="text-uppercase fw-bold mb-3">Client Detail List</h6>
-                                <div class="row mb-2">
-                                    <div class="col-md-3"><strong>Name:</strong> {{ $Customer->customer_name }}</div>
-                                    <div class="col-md-3"><strong>Mobile No:</strong> {{ $Customer->customer_phone }}</div>
-                                    <div class="col-md-3"><strong>Phone:</strong> {{ $Customer->customer_phone ?? '0' }}</div>
-                                    <div class="col-md-3"><strong>Email:</strong> {{ $Customer->customer_email ?? '-' }}</div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-md-3"><strong>Cast:</strong> {{ $Customer->cast->cast ?? '-' }}</div>
-                                    <div class="col-md-3"><strong>Branch:</strong> {{ $Customer->branch->branch_name ?? '-' }}</div>
-                                    <div class="col-md-3"><strong>City:</strong> {{ $Customer->city }}</div>
-                                    <div class="col-md-3"><strong>Address:</strong> {{ $Customer->address ?? '-' }}</div>
-                                </div>
-                            </div>
+  @if($latest)
+    <a class="tab-link {{ $r=='newVisite.previous_visit' ? 'active' : '' }}"
+       href="{{ route('newVisite.previous_visit', $cid) }}">
+      <span class="tab-ic"><i class="fa fa-message"></i></span> Previous Visit
+    </a>
+  @endif
 
-                            
-                            <!-- {{-- Product List --}} -->
-    <hr>
-                            <h5 class="card-title text-uppercase fw-bold text-black mb-2">Add customer view product</h5>
+  <a class="tab-link {{ $r=='custOrder.index' ? 'active' : '' }}"
+     href="{{ route('custOrder.index') }}">
+    <span class="tab-ic"><i class="fa fa-shopping-bag"></i></span> Orders
+  </a>
 
-                            <form id="regForm" method="POST" action="" enctype="multipart/form-data">
-                                        @csrf
-                                        <input type="hidden" name="cust_id" id="cust_id" value="{{ $id }}">
-
-                                        <div class="row gy-4">
-                                            <div class="col-lg-3 col-md-6">
-                                                <div>
-                                                   Category <span style="color:red;">*</span>
-                                                    <select class="form-control" name="category_id" id="category_id">
-                                                        <option value="">Select Category</option>
-                                                        @foreach($Category as $cat)
-                                                        <option value="{{$cat->category_id}}">{{ $cat->category_name }}</option>
-                                                        @endforeach 
-                                                    </select>
-                                                    <span class="text-danger error-text" id="error-category_id"></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-3 col-md-6">
-                                                <div>
-                                                    Product <span style="color:red;">*</span>
-
-                                                    <div class="dropdown">
-                                                        <button type="button"
-                                                                class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
-                                                                id="productDropBtn"
-                                                                data-bs-toggle="dropdown"
-                                                                data-bs-auto-close="outside"
-                                                                aria-expanded="false"
-                                                                disabled>
-                                                            Select category first
-                                                        </button>
-
-                                                        <div class="dropdown-menu w-100 p-2"
-                                                             aria-labelledby="productDropBtn"
-                                                             id="productDropdownMenu"
-                                                             style="max-height:220px; overflow:auto;">
-                                                            <div class="text-muted">Select category first</div>
-                                                        </div>
-                                                    </div>
-
-                                                    <span class="text-danger error-text" id="error-product_id"></span>
-                                                </div>
-                                            </div>
-
-                                            <!-- <div class="col-lg-3 col-md-6">
-                                                <div>
-                                                    Product <span style="color:red;">*</span>
-                                                    <select class="form-control" name="product_id" id="product_id">
-                                                        <option value="">Select Product</option>
-                                                        @foreach($Products as $cat)
-                                                        <option value="{{$cat->product_id}}">{{ $cat->product_name }}</option>
-                                                        @endforeach 
-                                                    </select>
-                                                    <span class="text-danger error-text" id="error-product_id"></span>
-                                                </div>
-                                            </div> -->
-                                           <div class="col-lg-3 col-md-3">
-                                                Employee Name <span style="color:red;">*</span>
-                                                <select class="form-control" name="emp_id" id="emp_id" >
-                                                    <option value="">Select Employee</option>
-                                                    @foreach ($employees as $emp)
-                                                        <option value="{{ $emp->emp_id }}" {{ old('emp_id', $custProduct->emp_id ?? '') == $emp->emp_id ? 'selected' : '' }}>
-                                                            {{ $emp->emp_name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                    <span class="text-danger error-text" id="error-emp_id"></span>
-
-                                            </div>
-
-                                             <input type="hidden" value="view" id="productstatus" name="status">
-                                            
-                                            <div class="col-lg-1 col-md-6"><div>
-                                                <button class="btn btn-primary btn-user float-right mt-4 mx-2" type="button" id="addProductBtn">Add</button>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="mt-3">
-                                                <h5 class="card-title text-uppercase fw-bold text-black mb-2">Product List</h5>
-                                                    <table class="table table-bordered" >
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Sr. No</th>
-                                                                <th>Product Category</th>
-                                                                <th>Product Name</th>
-                                                                <!--<th>Visit Date</th>-->
-                                                                <!-- <th>Product Amount</th> -->
-                                                                <th>Status</th>
-                                                                <th>Attended By</th>
-                                                                <th>Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="productTableBody">
-                                                        </tbody>
-
-                                                    </table>
-                                            </div>
-                                            <div class="mt-3"> 
-                                                <h5 class="card-title text-uppercase fw-bold text-black mb-2">Purchased Products</h5>
-
-                                                    <table class="table nowrap align-middle" style="width:100%">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>No</th>
-                                                                <th>Category</th>
-                                                                <th>Product</th>
-                                                                <th>Delivery Status</th>
-                                                                <th>Employee</th>
-                                                                <th>Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="purchasedTableBody"></tbody>
-                                                    </table>
-
-                                            </div>
-                                    </form>
-
-
-                                @if ($errors->any())
-                                    <div class="alert alert-danger">
-                                        <ul>
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-
-                            <hr>
-                            <div class="border p-3 mb-4">
-                                <h5 class="card-title text-uppercase fw-bold text-black mb-2">Next Followup</h6>
-                                    <!-- folloowup form start -->
-                                    <form action="{{ route('custFollowup.store') }}" method="POST">
-                                            @csrf
-                                            <div class="row gy-4">
-                                            <input type="hidden" class="form-control" name="visit_id" value="{{ $feedback->visit_id ?? '' }}" readonly>
-                                            <input type="hidden" class="form-control" name="cust_id" value="{{ $id }}" readonly>
-                                            <input type="hidden" class="form-control" name="branch_id" value="{{ $Customer->branch_id }}" readonly>
-
-                                            <div class="col-lg-3 col-md-6">
-                                                <label>Status</label><br>
-                                                    <div class="btn-group" role="group" aria-label="Status">
-                                                        <input type="hidden" name="followup_status" id="followup_status" value="{{ $feedback->followup_status ?? '0' }}">
-                                                        
-                                                        <button type="button" id="btnOpen" class="btn btn-success">
-                                                            Open
-                                                        </button>
-                                                        
-                                                        <button type="button" id="btnClose" class="btn btn-outline-danger">
-                                                            Close
-                                                        </button>
-                                                    </div>                                                    
-                                                     </button>
-                                                     @error('followup_status')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                            </div>
-
-                                        <div class="col-lg-3 col-md-6">
-                                                <label>Close Reason</label>
-
-                                                <select name="close_reason_id" class="form-control" id="close_reason">
-                                                    <option value="">Select Reason</option>
-                                                    @foreach($closereason as $cs)
-                                                    <option value="{{ $cs->close_reason_id }}" >{{$cs->close_reason}}</option>
-                                                    @endforeach
-                                                </select>
-                                                    @error('close_reason')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                            </div>
-
-
-                                            <div class="col-lg-3 col-md-6">
-                                                <label>Remark</label>
-                                                <input type="text" name="remark" class="form-control" value="{{ $feedback->remark ?? '' }}">
-                                                @error('remark')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                            </div>
-
-                                            <div class="col-lg-3 col-md-6">
-                                                <label>Visit Date</label>
-                                                <input type="date" name="visit_date" class="form-control" value="{{ old('visit_date', \Carbon\Carbon::now()->format('Y-m-d')) }}">
-                                                @error('visit_date')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                            </div>
-
-                                           
-                                            <div class="col-lg-3 col-md-6" >
-                                                <label>Follow-up Date</label>
-                                                <input type="date" name="next_followup_date" id="next_followup_date" class="form-control" value="{{ $feedback->next_followup_date ?? '' }}" >
-
-                                                @error('next_followup_date')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                            </div>
-
-                                            <div class="col-lg-3 col-md-6">
-                                                <label for="emp_name" class="form-label">Employee Name <span style="color:red;">*</span></label>
-                                                <select class="form-control" name="emp_id" id="emp_id" required>
-                                                    <option value="">Select Employee</option>
-                                                    @foreach ($employees as $emp)
-                                                        <option value="{{ $emp->emp_id }}" {{ old('emp_id', $followup->emp_id ?? '') == $emp->emp_id ? 'selected' : '' }}>
-                                                            {{ $emp->emp_name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('emp_id') <small class="text-danger">{{ $message }}</small> @enderror
-
-                                            </div>
-                                           <div class="col-lg-3 col-md-6 mt-5">
-                                                
-                                                <button type="submit" class="btn btn-success">Save</button>
-                                                <a href="{{ route('customer.index') }}" class="btn btn-danger">Back</a>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    
-                                    
-                                </tbody>
-                            </table>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
+  @if($orderId)
+    <a class="tab-link {{ $r=='orderPayment.index' ? 'active' : '' }}"
+       href="{{ route('orderPayment.index', $orderId) }}">
+      <span class="tab-ic"><i class="fa fa-credit-card"></i></span> Order Payment
+    </a>
+  @endif
 </div>
 
+@include('common.alert')
 
-<div class="modal fade flip" id="editModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-light p-3">
-                <h5 class="modal-title">Edit Status</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                    id="close-modal"></button>
-            </div>
-
-            <form method="POST" action="{{ route('custProduct.changeStatus') }}" autocomplete="off" enctype="multipart/form-data">
-                @csrf
-                @method('POST')
-                <input type="hidden" name="product_id" id="statusproduct_id" value="">
-
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label><span style="color:red;">*</span> Status</label>
-                        <select class="form-control" name="status" id="Editreview_status">
-                            <option value="">Select Status</option>
-                            @foreach($orderStatus as $s)
-                            <option value="{{ $s->order_status_id  }}">{{ $s->status}}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <div class="hstack gap-2 justify-content-end">
-                        <button type="submit" class="btn btn-primary">Update</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    </div>
-                </div>
-            </form>
-
-        </div>
-    </div>
-</div>
-
-<!-- Order Product Modal -->
-<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <form id="orderForm" enctype="multipart/form-data">
-    @csrf
-
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="orderModalLabel">Order Product</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        
-        <div class="modal-body" style="max-height: 700px; overflow-y: auto;">
-          <input type="hidden" name="product_id" id="orderProductId">
-         <input type="hidden" name="cust_pro_id" value="" id="ordercust_pro_id" class="form-control" readonly> 
-
-          <!-- Add other input fields here if needed -->
-          <div class="row">
-                <div class="card-header d-flex align-items-center">
-                    <input type="hidden" id="orderbranch_id" value="">
-
-                    <div class="col-md-3 mb-3">
-                        <strong>Branch Name:</strong>
-                        <span id="orderbranch_name"></span>
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-                        <strong>Product Name:</strong>
-                        <span id="orderProduct"></span>
-                    </div>
-                </div>
-
-                      <div class="col-lg-4 col-md-6 mt-3">
-                 <label for="karat" class="form-label">Karat <span style="color:red;">*</span></label>
-                    <select name="karat" class="form-control" >
-                        <option value="">Select Karat</option>
-                    @foreach ($purity as $prt)
-                        <option value="{{ $prt->purity_id  }}" {{ old('karat', $detail->karat ?? '') == $prt->purity_id ? 'selected' : '' }}>
-                            {{ $prt->purity_value }}
-                        </option>
-                    @endforeach
-                    </select>
-                <!-- <input type="text" name="karat" class="form-control" value="{{ old('karat', $detail->karat ?? '') }}" maxlength="100" placeholder="Enter Karat" required> -->
-                @error('karat') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="col-lg-4 col-md-6 mt-3">
-                 <label for="color_id" class="form-label">Color <span style="color:red;"></span></label>
-                    <select class="form-control" name="color_id" id="color_id" >
-                        <option value="">Select Color</option>
-                        @foreach ($color as $c)
-                            <option value="{{ $c->color_id }}" {{ old('color_id', $detail->color_id ?? '') == $c->color_id ? 'selected' : '' }}>
-                                {{ $c->color_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('color_id') <small class="text-danger">{{ $message }}</small> @enderror
-
-            </div>
-
-            <div class="col-lg-4 col-md-6 mt-3">
-                <label for="weight" class="form-label">Weight </label>
-                <input type="text" step="0.01" name="weight" class="form-control" value="{{ old('weight', $detail->weight ?? '') }}" maxlength="50" placeholder="Enter Weight">
-                @error('weight') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="col-lg-4 col-md-6 mt-3">
-                 <label for="size" class="form-label">Size <span style="color:red;"></span></label>
-                <input type="text" name="size" class="form-control"  value="{{ old('size', $detail->size ?? '') }}" maxlength="50" placeholder="Enter Size" >
-                @error('size') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="col-lg-4 col-md-6 mt-3">
-               <label for="refer_tag_number" class="form-label">Reference Tag Number <span style="color:red;"></span></label>
-                 <input type="text" name="refer_tag_number" id="orderrefno" class="form-control"  value="{{ old('refer_tag_number', $detail->refer_tag_number ?? '') }}" placeholder="Enter Reference Tag Number"  maxlength="50" >
-                @error('refer_tag_number') <small class="text-danger">{{ $message }}</small> @enderror
-            </div><!-- 
-            <div class="col-lg-4 col-md-6 mt-3">
-               <label for="refer_image_url" class="form-label">Reference Image URL<span style="color:red;"></span></label>
-                 <input type="text" name="refer_image_url" class="form-control"  value="{{ old('refer_image_url', $detail->refer_image_url ?? '') }}" placeholder="Enter Reference Tag Number"  maxlength="50" >
-                @error('refer_image_url') <small class="text-danger">{{ $message }}</small> @enderror
-            </div> -->
-            <div class="col-lg-4 col-md-6 mt-3">
-                Reference Image <span style="color:red;">*</span>
-                <input type="file" class="form-control" name="refer_image" id="refer_image" accept="image/*">
-                <small class="text-muted">Upload jpg/png/webp</small>
-
-                {{-- preview (optional) --}}
-                <div class="mt-2">
-                    <img id="refer_image_preview" src="" style="display:none; width:80px; height:80px; object-fit:cover;" />
-                </div>
-            </div>
-
-          
-            <div class="col-lg-4 col-md-6 mt-3">
-              <label for="amount" class="form-label">Amount <span style="color:red;">*</span></label>
-                <input type="number" step="0.01" name="amount" class="form-control"  value="{{ old('amount', $detail->amount ?? '') }}" maxlength="50" placeholder="Enter Amount" required>
-                @error('amount') <small class="text-danger">{{ $message }}</small> @enderror
-
-            </div>
-             <div class="col-lg-4 col-md-6 mt-3">
-              <label for="rate_type" class="form-label">Rate Type <span style="color:red;"></span></label>
-               <select class="form-control" name="rate_type" id="rate_type">
-                    <option value="">Select Rate Type</option>
-                    <option value="Mk rate" {{ old('rate_type', $detail->rate_type ?? '') == 'Mk rate' ? 'selected' : '' }}>Mk Rate</option>
-                    <option value="Z rate" {{ old('rate_type', $detail->rate_type ?? '') == 'Z rate' ? 'selected' : '' }}>Z Rate</option>
-                </select>
-                @error('rate_type') <small class="text-danger">{{ $message }}</small> @enderror
-
-            </div>
-             <div class="col-lg-4 col-md-6 mt-3">
-              <label for="rate_fix_open" class="form-label">Rate Fix/Open <span style="color:red;"></span></label>
-                <input type="text" step="0.01" name="rate_fix_open" class="form-control"  value="{{ old('rate_fix_open', $detail->rate_fix_open ?? '') }}" maxlength="50" placeholder="Enter Rate Fix / Open" >
-                @error('rate_fix_open') <small class="text-danger">{{ $message }}</small> @enderror
-
-            </div>
-            <div class="col-lg-4 col-md-6 mt-3">
-                <label>Remark <span style="color:red;"></span></label>
-                <textarea name="remark" class="form-control" maxlength="255" placeholder="Enter Remark" >{{ $order->remark ?? '' }}</textarea><br>
-                @error('remark') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
-            <div class="col-lg-4 col-md-6 mt-3">
-              <label for="given_to" class="form-label">Order Given To <span style="color:red;"></span></label>
-                <select class="form-control" name="given_to" id="given_to" >
-                    <option value="">Select Vendor</option>
-                    @foreach ($vendor as $emp)
-                        <option value="{{ $emp->vendor_id }}" {{ old('given_to', $order->given_to ?? '') == $emp->vendor_id ? 'selected' : '' }}>
-                            {{ $emp->contact_person }}
-                        </option>
-                    @endforeach
-
-                </select>
-                @error('given_to') 
-                <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
-           <div class="col-lg-4 col-md-6 mt-3">
-              <label for="delivery_status" class="form-label">Delivery Status <span style="color:red;"> *</span></label>
-                <select class="form-control" name="delivery_status" id="delivery_status">
-                    <option value="">Select Delivery Status</option>
-                        @foreach ($orderStatus as $status)
-                            <option value="{{ $status->order_status_id  }}" {{ old('delivery_status', $detail->delivery_status ?? '') == $status->order_status_id  ? 'selected' : '' }}>
-                                {{ $status->status }}
-                            </option>
-                        @endforeach
-
-                </select>
-                @error('delivery_status') <small class="text-danger">{{ $message }}</small> @enderror
-
-            </div>
-
-            <div class="col-lg-4 col-md-6 mt-3">
-              <label for="delivery_date" class="form-label">Delivery Date </label>
-                <input type="date" name="delivery_date" class="form-control" placeholder="Enter Given To" value="{{ old('delivery_date', $detail->delivery_date ?? '') }}" maxlength="50" >
-                @error('delivery_date') <small class="text-danger">{{ $message }}</small> @enderror
-
-            </div>
-            <div class="col-lg-6 col-md-6 mt-3" id="notPurchasedReasonWrap" style="display:none;">
-                Reason (Not Purchased) <span style="color:red;">*</span>
-                <textarea class="form-control" name="not_purchased_reason" id="not_purchased_reason" rows="2"
-                          placeholder="Enter reason..."></textarea>
-            </div>
-
-      
-    </div>
-        <div class="modal-footer mt-3">
-          <button type="submit" class="btn btn-primary">Confirm Order</button>
-        </div>
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="d-flex justify-content-between card-header">
+        <h5 class="card-title text-uppercase fw-bold text-black mb-0">Customer Detail</h5>
       </div>
-    </form>
+
+      <div class="card-body">
+
+        {{-- Client Detail --}}
+        <div class="border p-3 mb-4">
+          <h6 class="text-uppercase fw-bold mb-3">Client Detail List</h6>
+          <div class="row mb-2">
+            <div class="col-md-3"><strong>Name:</strong> {{ $Customer->customer_name }}</div>
+            <div class="col-md-3"><strong>Mobile No:</strong> {{ $Customer->customer_phone }}</div>
+            <div class="col-md-3"><strong>Phone:</strong> {{ $Customer->customer_phone ?? '0' }}</div>
+            <div class="col-md-3"><strong>Email:</strong> {{ $Customer->customer_email ?? '-' }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-md-3"><strong>Cast:</strong> {{ $Customer->cast->cast ?? '-' }}</div>
+            <div class="col-md-3"><strong>Branch:</strong> {{ $Customer->branch->branch_name ?? '-' }}</div>
+            <div class="col-md-3"><strong>City:</strong> {{ $Customer->city }}</div>
+            <div class="col-md-3"><strong>Address:</strong> {{ $Customer->address ?? '-' }}</div>
+          </div>
+        </div>
+
+        <hr>
+        <h5 class="card-title text-uppercase fw-bold text-black mb-2">Add customer view product</h5>
+
+        <form id="regForm" method="POST" action="" enctype="multipart/form-data">
+          @csrf
+          <input type="hidden" name="cust_id" id="cust_id" value="{{ $id }}">
+          <input type="hidden" name="visit_id" id="visit_id" value="{{ $feedback->visit_id ?? '' }}">
+          <input type="hidden" name="visit_date" id="visit_date" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+          <input type="hidden" value="view" id="productstatus" name="status">
+
+          <div class="row gy-4">
+
+            <div class="col-lg-3 col-md-6">
+              Category <span class="text-danger">*</span>
+              <select class="form-control" name="category_id" id="category_id">
+                <option value="">Select Category</option>
+                @foreach($Category as $cat)
+                  <option value="{{ $cat->category_id }}">{{ $cat->category_name }}</option>
+                @endforeach
+              </select>
+              <span class="text-danger error-text" id="error-category_id"></span>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+              Product <span class="text-danger">*</span>
+
+              <div class="dropdown w-100">
+                <button type="button"
+                        class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                        id="productDropBtn"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        aria-expanded="false"
+                        disabled>
+                  Select category first
+                </button>
+
+                <div class="dropdown-menu w-100 p-2"
+                     aria-labelledby="productDropBtn"
+                     id="productDropdownMenu"
+                     style="max-height:220px; overflow:auto;">
+                  <div class="text-muted">Select category first</div>
+                </div>
+              </div>
+
+              <span class="text-danger error-text" id="error-product_id"></span>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+              Employee Name <span class="text-danger">*</span>
+              <select class="form-control" name="emp_id" id="product_emp_id">
+                <option value="">Select Employee</option>
+                @foreach ($employees as $emp)
+                  <option value="{{ $emp->emp_id }}">{{ $emp->emp_name }}</option>
+                @endforeach
+              </select>
+              <span class="text-danger error-text" id="error-emp_id"></span>
+            </div>
+
+            <div class="col-lg-1 col-md-6">
+              <button class="btn btn-primary mt-4" type="button" id="addProductBtn">Add</button>
+            </div>
+
+            {{-- 1) Normal Product List --}}
+            <div class="mt-3">
+              <h5 class="card-title text-uppercase fw-bold text-black mb-2">Product List</h5>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sr. No</th>
+                    <th>Category</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Employee</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="productTableBody"></tbody>
+              </table>
+            </div>
+
+            {{-- 2) Purchased Product List (Amount + Total) --}}
+            <div class="mt-3">
+              <h5 class="card-title text-uppercase fw-bold text-black mb-2">Purchased Products</h5>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sr. No</th>
+                    <th>Category</th>
+                    <th>Product</th>
+                    <th class="text-end">Amount</th>
+                    <th>Employee</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="purchasedTableBody"></tbody>
+                <tfoot>
+                  <tr>
+                    <th colspan="3" class="text-end">Total</th>
+                    <th class="text-end" id="purchasedTotal">0</th>
+                    <th colspan="2"></th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {{-- 3) Not Purchased Product List --}}
+            <div class="mt-3">
+              <h5 class="card-title text-uppercase fw-bold text-black mb-2">Not Purchased Products</h5>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sr. No</th>
+                    <th>Category</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Employee</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="notPurchasedTableBody"></tbody>
+              </table>
+            </div>
+
+          </div>
+        </form>
+
+        <hr>
+
+        {{-- Next Followup --}}
+        <div class="border p-3 mb-4">
+          <h5 class="card-title text-uppercase fw-bold text-black mb-2">Next Followup</h5>
+
+          <form action="{{ route('custFollowup.store') }}" method="POST">
+            @csrf
+            <div class="row gy-4">
+
+              <input type="hidden" name="visit_id" value="{{ $feedback->visit_id ?? '' }}">
+              <input type="hidden" name="cust_id" value="{{ $id }}">
+              <input type="hidden" name="branch_id" value="{{ $Customer->branch_id }}">
+
+              <div class="col-lg-3 col-md-6">
+                <label>Status</label><br>
+                <div class="btn-group" role="group">
+                  <input type="hidden" name="followup_status" id="followup_status" value="{{ $feedback->followup_status ?? '0' }}">
+                  <button type="button" id="btnOpen" class="btn btn-success">Open</button>
+                  <button type="button" id="btnClose" class="btn btn-outline-danger">Close</button>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6">
+                <label>Close Reason</label>
+                <select name="close_reason_id" class="form-control" id="close_reason">
+                  <option value="">Select Reason</option>
+                  @foreach($closereason as $cs)
+                    <option value="{{ $cs->close_reason_id }}">{{ $cs->close_reason }}</option>
+                  @endforeach
+                </select>
+              </div>
+
+              <div class="col-lg-3 col-md-6">
+                <label>Remark</label>
+                <input type="text" name="remark" class="form-control" value="{{ $feedback->remark ?? '' }}">
+              </div>
+
+              <div class="col-lg-3 col-md-6">
+                <label>Visit Date</label>
+                <input type="date" name="visit_date" class="form-control"
+                       value="{{ old('visit_date', \Carbon\Carbon::now()->format('Y-m-d')) }}">
+              </div>
+
+              <div class="col-lg-3 col-md-6">
+                <label>Follow-up Date</label>
+                <input type="date" name="next_followup_date" id="next_followup_date" class="form-control"
+                       value="{{ $feedback->next_followup_date ?? '' }}">
+              </div>
+
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label">Employee Name <span class="text-danger">*</span></label>
+                <select class="form-control" name="emp_id" id="followup_emp_id" required>
+                  <option value="">Select Employee</option>
+                  @foreach ($employees as $emp)
+                    <option value="{{ $emp->emp_id }}">{{ $emp->emp_name }}</option>
+                  @endforeach
+                </select>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mt-5">
+                <button type="submit" class="btn btn-success">Save</button>
+                <a href="{{ route('customer.index') }}" class="btn btn-danger">Back</a>
+              </div>
+
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
   </div>
 </div>
 
+{{-- Edit Status Modal --}}
+<div class="modal fade flip" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-light p-3">
+        <h5 class="modal-title">Edit Status</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="POST" action="{{ route('custProduct.changeStatus') }}">
+        @csrf
+        <input type="hidden" name="product_id" id="statusproduct_id">
+
+        <div class="modal-body">
+          <label><span class="text-danger">*</span> Status</label>
+          <select class="form-control" name="status" id="Editreview_status">
+            <option value="">Select Status</option>
+            @foreach($orderStatus as $s)
+              <option value="{{ $s->order_status_id }}">{{ $s->status }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Update</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+{{-- Order Product Modal --}}
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+
+    <form id="orderForm" enctype="multipart/form-data">
+      @csrf
+
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Order Product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body" style="max-height: 700px; overflow-y:auto;">
+          <input type="hidden" name="product_id" id="orderProductId">
+          <input type="hidden" name="cust_pro_id" id="ordercust_pro_id">
+          <input type="hidden" name="branch_id" id="orderbranch_id">
+
+          <div class="row">
+            <div class="card-header d-flex align-items-center">
+              <div class="col-md-3 mb-3"><strong>Branch:</strong> <span id="orderbranch_name"></span></div>
+              <div class="col-md-5 mb-3"><strong>Product:</strong> <span id="orderProduct"></span></div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Karat <span class="text-danger">*</span></label>
+              <select name="karat" class="form-control" required>
+                <option value="">Select Karat</option>
+                @foreach ($purity as $prt)
+                  <option value="{{ $prt->purity_id }}">{{ $prt->purity_value }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Color</label>
+              <select class="form-control" name="color_id" id="color_id">
+                <option value="">Select Color</option>
+                @foreach ($color as $c)
+                  <option value="{{ $c->color_id }}">{{ $c->color_name }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Weight</label>
+              <input type="text" name="weight" class="form-control" maxlength="50" placeholder="Enter Weight">
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Size</label>
+              <input type="text" name="size" class="form-control" maxlength="50" placeholder="Enter Size">
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Reference Tag Number</label>
+              <input type="text" name="refer_tag_number" id="orderrefno" class="form-control" maxlength="50">
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Reference Image (Browse)</label>
+              <input type="file" name="refer_image" id="refer_image" class="form-control" accept="image/*">
+              <div class="mt-2">
+                <img id="refer_image_preview" src="" style="display:none;width:80px;height:80px;object-fit:cover;" />
+              </div>
+              <input type="hidden" id="existing_refer_image_url" value="">
+              <a id="existingRefImageLink" href="#" target="_blank" style="display:none;">View Existing</a>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Amount <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" name="amount" class="form-control" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Rate Type</label>
+              <select class="form-control" name="rate_type" id="rate_type">
+                <option value="">Select Rate Type</option>
+                <option value="Mk rate">Mk Rate</option>
+                <option value="Z rate">Z Rate</option>
+              </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Rate Fix/Open</label>
+              <select class="form-control" name="rate_fix_open" id="rate_fix_open">
+                <option value="">Select Rate</option>
+                <option value="Fix" {{ ($Customer->rate ?? '') == 'Fix' ? 'selected' : '' }}>Fix</option>
+                <option value="Open" {{ ($Customer->rate ?? '') == 'Open' ? 'selected' : '' }}>Open</option>
+              </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Remark</label>
+              <textarea name="remark" class="form-control" maxlength="255"></textarea>
+            </div>
+
+            {{-- ✅ Vendor dropdown (same pattern as file 2) --}}
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Order Given To</label>
+              <select class="form-control" name="given_to" id="given_to">
+                <option value="">Select Vendor</option>
+                <option value="__add_vendor__">+ Add New Vendor</option>
+                @foreach ($vendor as $v)
+                  <option value="{{ $v->vendor_id }}">{{ $v->contact_person }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Delivery Status <span class="text-danger">*</span></label>
+              <select class="form-control" name="delivery_status" id="delivery_status" required>
+                <option value="">Select Delivery Status</option>
+                @foreach ($orderStatus as $status)
+                  <option value="{{ $status->order_status_id }}">{{ $status->status }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mt-3">
+              <label class="form-label">Delivery Date</label>
+              <input type="date" name="delivery_date" class="form-control">
+            </div>
+
+            <div class="col-lg-6 col-md-6 mt-3" id="notPurchasedReasonWrap">
+              <label class="form-label">Reason (Not Purchased) <span class="text-danger">*</span></label>
+              <select name="not_purchased_reason" class="form-control" id="not_purchased_reason">
+                <option value="">Select Reason</option>
+                @foreach($notPurchasereason as $cs)
+                  <option value="{{ $cs->close_reason_id }}">{{ $cs->close_reason }}</option>
+                @endforeach
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer mt-3">
+          <button type="submit" class="btn btn-primary">Confirm Order</button>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+</div>
+
+{{-- Vendor Modal (same as file 2) --}}
+<div class="modal fade" id="vendorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Add Vendor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Vendor Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="vendor_name" placeholder="Enter vendor name">
+          <small class="text-danger" id="vendor_name_err"></small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Mobile</label>
+          <input type="text" class="form-control" id="vendor_mobile" placeholder="Enter mobile">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Address</label>
+          <textarea class="form-control" id="vendor_address" rows="2" placeholder="Enter address"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="saveVendorBtn" class="btn btn-primary">Save Vendor</button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 @endsection
+
 @section('scripts')
 <script>
-$(document).ready(function () {
-    $('#addProductBtn').click(function (e) {
-        e.preventDefault();
-    $('.error-text').text(''); // Clear previous errors
+  // ===== Category wise products map (from controller)
+  const productsByCategory = @json($productsByCategory ?? []);
 
-        $.ajax({
-            url: "{{ route('custProduct.store') }}",
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                cust_id: $('#cust_id').val(),
-                category_id: $('#category_id').val(),
-                product_id: $('#product_id').val(),
-                visit_id: $('#visit_id').val(),
-                emp_id: $('#emp_id').val(),
-                visit_date: $('#visit_date').val(),
-                status: $('#productstatus').val()
-            },
-             success: function (response) {
-                    if (response.success) {
-                        loadProductList();
-                        $('#yourFormId')[0].reset(); // reset form if needed
-                    }
-                },
-                error: function (xhr) {
-                    if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        $.each(errors, function (key, value) {
-                            $(`#error-${key}`).text(value[0]); // show error next to input
-                        });
-                    }
-                }
-        });
-    });
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
 
-    function loadProductList() {
-    $.ajax({
-        url: "{{ route('newVisite.product', $id) }}",
-        method: 'GET',
-        success: function (products) {
-            let html = '';
+  function updateProductDropText() {
+    let count = $('.product_cb:checked').length;
+    $('#productDropBtn').text(count ? (count + ' selected') : 'Select product(s)');
+  }
 
-            products.forEach((item, index) => {
+  function renderProductsByCategory(catId) {
+    const menu = $('#productDropdownMenu');
+    menu.html('');
+    updateProductDropText();
 
-                // 🔹 Delete button (always visible)
-                let actionButtons = `
-                    <button class="btn btn-danger btn-sm deleteProduct"
-                        data-id="${item.cust_pro_id}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                `;
-
-                // 🔹 Edit button (ONLY if order placed)
-                if (item.order_details !== null) {
-                    actionButtons += `
-                        <button type="button"
-                            class="btn btn-success btn-sm editStatus"
-                            data-id="${item.cust_pro_id}"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editModal">
-                            <i class="fa fa-edit"></i>
-                        </button>
-                    `;
-                }
-
-                // 🔹 Order button (always visible)
-                actionButtons += `
-                    <button type="button"
-                        class="btn btn-success btn-sm orderProduct"
-                        data-id="${item.cust_pro_id}"
-                        data-name="${item.product.product_name}"
-                        data-product="${item.product_id}"
-                        data-branch="${item.branch_id}"
-                        data-refno="${item.product.product_tag}"
-                        data-branchname="${item.branch.branch_name}"
-                        data-bs-toggle="modal"
-                        data-bs-target="#orderModal">
-                        <i class="fa fa-shopping-cart" title="Order Product"></i>
-                    </button>
-                `;
-
-                html += `
-                    <tr id="row-${item.cust_pro_id}">
-                        <td>${index + 1}</td>
-                        <td>${item.category.category_name}</td>
-                        <td>${item.product.product_name}</td>
-                        <td>${item.order_details?.order_status?.status ?? item.status}</td>
-                        <td>${item.employee.emp_name}</td>
-                        <td>${actionButtons}</td>
-                    </tr>
-                `;
-            });
-
-            $('#productTableBody').html(html);
-        }
-    });
-}
-
-
-    loadProductList(); // Load on page load
-});
-
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-based
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-}
-
-$(document).on('click', '.editStatus', function () {
-    let id = $(this).data('id');
-    $('#statusproduct_id').val(id);
-});
-$(document).on('click', '.deleteProduct', function (event) {
-    event.preventDefault(); // prevent page refresh
-
-    let id = $(this).data('id');
-    if (confirm('Are you sure you want to delete this product?')) {
-        $.ajax({
-            url: `/admin/customer-product/delete/${id}`,
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
-            success: function (response) {
-                if (response.success) {
-                    $(`#row-${id}`).remove();
-                } else {
-                    alert('Failed to delete the product.');
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText); // helpful for debugging
-                alert('An error occurred while deleting the product.');
-            }
-        });
+    if (!catId) {
+      $('#productDropBtn').prop('disabled', true).text('Select category first');
+      menu.html('<div class="text-muted">Select category first</div>');
+      return;
     }
-});
 
-$(document).on('click', '.orderProduct', function () {
-    // Get data attributes
-    let custProId = $(this).data('id');
-    let productId = $(this).data('product');
-    let branchId = $(this).data('branch');
-    let productName = $(this).data('name');
-    let branchName = $(this).data('branchname');
-    let refNo = $(this).data('refno');
+    const list = productsByCategory[catId] || [];
+    $('#productDropBtn').prop('disabled', false).text('Select product(s)');
 
-    // Set hidden fields and static spans
+    if (!list.length) {
+      menu.html('<div class="text-muted">No products in this category</div>');
+      return;
+    }
+
+    let html = `
+      <label class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="productSelectAll">
+        <span class="form-check-label">Select All</span>
+      </label>
+      <hr class="my-2">
+    `;
+
+    list.forEach(p => {
+      html += `
+        <label class="form-check">
+          <input class="form-check-input product_cb" type="checkbox" value="${p.product_id}">
+          <span class="form-check-label">${escapeHtml(p.product_name)}</span>
+        </label>
+      `;
+    });
+
+    menu.html(html);
+  }
+
+  // ===== Vendor select2 (same as file 2)
+  function initVendorSelect2() {
+    if ($('#given_to').hasClass('select2-hidden-accessible')) {
+      $('#given_to').select2('destroy');
+    }
+    $('#given_to').select2({
+      width: '100%',
+      dropdownParent: $('#orderModal'),
+      placeholder: 'Select Vendor',
+      allowClear: true,
+      templateResult: function (data) {
+        if (!data.id) return data.text;
+        if (data.id === '__add_vendor__') {
+          return $('<span style="font-weight:600;color:#0d6efd;"><i class="fa fa-plus"></i> Add New Vendor</span>');
+        }
+        return data.text;
+      }
+    });
+  }
+
+  // ===== Not purchased reason toggle (based on selected text)
+  function toggleNotPurchasedReason() {
+    const txt = ($('#delivery_status option:selected').text() || '').toLowerCase();
+    if (txt.includes('not purchased')) {
+      $('#notPurchasedReasonWrap').show();
+      $('#not_purchased_reason').prop('required', true);
+    } else {
+      $('#notPurchasedReasonWrap').hide();
+      $('#not_purchased_reason').prop('required', false).val('');
+    }
+  }
+
+  // ===== Load product list -> 3 tables
+  function loadProductList() {
+    $.ajax({
+      url: "{{ route('newVisite.product', $id) }}",
+      method: "GET",
+      success: function (products) {
+
+        let normalRows = '';
+        let purchasedRows = '';
+        let notPurchasedRows = '';
+
+        let n1=1, n2=1, n3=1;
+        let purchasedTotal = 0;
+
+        if (!Array.isArray(products)) {
+          $('#productTableBody').html('<tr><td colspan="6" class="text-center text-muted">No Data</td></tr>');
+          $('#purchasedTableBody').html('<tr><td colspan="6" class="text-center text-muted">No Data</td></tr>');
+          $('#notPurchasedTableBody').html('<tr><td colspan="6" class="text-center text-muted">No Data</td></tr>');
+          $('#purchasedTotal').text('0');
+          return;
+        }
+
+        products.forEach((item) => {
+
+          const statusText =
+            (item.order_details && item.order_details.order_status && item.order_details.order_status.status)
+              ? item.order_details.order_status.status
+              : (item.status ?? '-');
+
+          const statusLower = String(statusText || '').toLowerCase();
+
+          // classify:
+          const isNotPurchased = statusLower.includes('not purchased');
+          const isPurchased = (!isNotPurchased) && (item.order_details !== null);
+
+          // amount (from order details)
+          const amt = parseFloat(item.order_details?.amount ?? item.order_details?.iAmount ?? item.order_details?.total_amount ?? 0) || 0;
+
+          // buttons
+          let deleteBtn = `
+            <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
+              <i class="fa fa-trash"></i>
+            </button>
+          `;
+
+          let editBtn = '';
+          if (item.order_details !== null) {
+            editBtn = `
+              <button type="button" class="btn btn-success btn-sm editStatus"
+                data-id="${item.cust_pro_id}"
+                data-bs-toggle="modal"
+                data-bs-target="#editModal">
+                <i class="fa fa-edit"></i>
+              </button>
+            `;
+          }
+
+          let orderBtn = `
+            <button type="button" class="btn btn-success btn-sm orderProduct"
+              data-id="${item.cust_pro_id}"
+              data-name="${escapeHtml(item.product?.product_name ?? '')}"
+              data-product="${item.product_id}"
+              data-branch="${item.branch_id}"
+              data-refno="${escapeHtml(item.product?.product_tag ?? '')}"
+              data-branchname="${escapeHtml(item.branch?.branch_name ?? '')}"
+              data-bs-toggle="modal"
+              data-bs-target="#orderModal">
+              <i class="fa fa-shopping-cart" title="Order Product"></i>
+            </button>
+          `;
+
+          // ✅ Normal table actions: delete + edit(if ordered) + order
+          // ✅ Purchased table actions: delete only (as you requested remove status + order icon)
+          // ✅ NotPurchased table actions: delete + edit(if ordered) + order (optional) -> I kept order to retry purchase. If you want remove order here also, tell me.
+          let actionNormal = deleteBtn + editBtn + orderBtn;
+          let actionPurchased = deleteBtn; // only delete
+          let actionNotPurchased = deleteBtn + editBtn + orderBtn;
+
+          if (isPurchased) {
+            purchasedTotal += amt;
+
+            purchasedRows += `
+              <tr id="row-${item.cust_pro_id}">
+                <td>${n2++}</td>
+                <td>${escapeHtml(item.category?.category_name ?? '-')}</td>
+                <td>${escapeHtml(item.product?.product_name ?? '-')}</td>
+                <td class="text-end">${amt.toFixed(2)}</td>
+                <td>${escapeHtml(item.employee?.emp_name ?? '-')}</td>
+                <td>${actionPurchased}</td>
+              </tr>
+            `;
+            return;
+          }
+
+          if (isNotPurchased) {
+            notPurchasedRows += `
+              <tr id="row-${item.cust_pro_id}">
+                <td>${n3++}</td>
+                <td>${escapeHtml(item.category?.category_name ?? '-')}</td>
+                <td>${escapeHtml(item.product?.product_name ?? '-')}</td>
+                <td>${escapeHtml(statusText)}</td>
+                <td>${escapeHtml(item.employee?.emp_name ?? '-')}</td>
+                <td>${actionNotPurchased}</td>
+              </tr>
+            `;
+            return;
+          }
+
+          // normal
+          normalRows += `
+            <tr id="row-${item.cust_pro_id}">
+              <td>${n1++}</td>
+              <td>${escapeHtml(item.category?.category_name ?? '-')}</td>
+              <td>${escapeHtml(item.product?.product_name ?? '-')}</td>
+              <td>${escapeHtml(statusText)}</td>
+              <td>${escapeHtml(item.employee?.emp_name ?? '-')}</td>
+              <td>${actionNormal}</td>
+            </tr>
+          `;
+        });
+
+        $('#productTableBody').html(normalRows || '<tr><td colspan="6" class="text-center text-muted">No products</td></tr>');
+        $('#purchasedTableBody').html(purchasedRows || '<tr><td colspan="6" class="text-center text-muted">No purchased products</td></tr>');
+        $('#notPurchasedTableBody').html(notPurchasedRows || '<tr><td colspan="6" class="text-center text-muted">No not-purchased products</td></tr>');
+        $('#purchasedTotal').text(purchasedTotal.toFixed(2));
+      }
+    });
+  }
+
+  // ===== Add selected products
+  function addSelectedProducts() {
+    $('.error-text').text('');
+
+    const categoryId = $('#category_id').val();
+    const empId = $('#product_emp_id').val();
+
+    if (!categoryId) { $('#error-category_id').text('Please select category.'); return; }
+    if (!empId) { $('#error-emp_id').text('Please select employee.'); return; }
+
+    const productIds = $('.product_cb:checked').map(function(){ return $(this).val(); }).get();
+    if (!productIds.length) { $('#error-product_id').text('Please select at least one product.'); return; }
+
+    $('#addProductBtn').prop('disabled', true);
+
+    const baseData = {
+      _token: '{{ csrf_token() }}',
+      cust_id: $('#cust_id').val(),
+      category_id: categoryId,
+      visit_id: $('#visit_id').val(),
+      emp_id: empId,
+      visit_date: $('#visit_date').val(),
+      status: $('#productstatus').val()
+    };
+
+    // sequential calls (safer)
+    function send(i){
+      if(i >= productIds.length){
+        loadProductList();
+        $('#addProductBtn').prop('disabled', false);
+        $('#productSelectAll').prop('checked', false);
+        $('.product_cb').prop('checked', false);
+        updateProductDropText();
+        return;
+      }
+      $.ajax({
+        url: "{{ route('custProduct.store') }}",
+        method: "POST",
+        data: Object.assign({}, baseData, { product_id: productIds[i] }),
+        complete: function(){ send(i+1); }
+      });
+    }
+    send(0);
+  }
+
+  // ===== Document ready
+  $(document).ready(function () {
+    loadProductList();
+
+    // category change
+    $(document).on('change', '#category_id', function(){
+      renderProductsByCategory($(this).val());
+    });
+
+    // select all
+    $(document).on('change', '#productSelectAll', function(){
+      $('.product_cb').prop('checked', this.checked);
+      updateProductDropText();
+    });
+
+    // checkbox count
+    $(document).on('change', '.product_cb', function(){
+      $('#productSelectAll').prop('checked', $('.product_cb').length === $('.product_cb:checked').length);
+      updateProductDropText();
+    });
+
+    // add products
+    $(document).on('click', '#addProductBtn', addSelectedProducts);
+
+    // order status change => toggle reason
+    $(document).on('change', '#delivery_status', toggleNotPurchasedReason);
+
+    // preview refer image
+    $(document).on('change', '#refer_image', function(){
+      const file = this.files && this.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      $('#refer_image_preview').attr('src', url).show();
+    });
+  });
+
+  // ===== Delete product
+  $(document).on('click', '.deleteProduct', function (e) {
+    e.preventDefault();
+    const id = $(this).data('id');
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    $.ajax({
+      url: `/admin/customer-product/delete/${id}`,
+      method: 'POST',
+      data: { _token: '{{ csrf_token() }}' },
+      success: function (response) {
+        if (response.success) $(`#row-${id}`).remove();
+        else alert('Failed to delete the product.');
+      },
+      error: function () { alert('An error occurred while deleting the product.'); }
+    });
+  });
+
+  // ===== Edit status modal set id
+  $(document).on('click', '.editStatus', function () {
+    $('#statusproduct_id').val($(this).data('id'));
+  });
+
+  // ===== Order modal open + load existing details
+  $(document).on('click', '.orderProduct', function () {
+
+    const custProId = $(this).data('id');
+    const productId = $(this).data('product');
+    const branchId = $(this).data('branch');
+    const productName = $(this).data('name');
+    const branchName = $(this).data('branchname');
+    const refNo = $(this).data('refno');
+
+    $('#orderForm')[0].reset();
+    $('#refer_image_preview').hide().attr('src','');
+    $('#notPurchasedReasonWrap').hide();
+    $('#not_purchased_reason').val('');
+
     $('#ordercust_pro_id').val(custProId);
     $('#orderProductId').val(productId);
     $('#orderbranch_id').val(branchId);
-    $('#orderProduct').text(productName);
-    $('#orderbranch_name').text(branchName);
-    $('#orderrefno').val(refNo);
+    $('#orderProduct').text(productName || '');
+    $('#orderbranch_name').text(branchName || '');
+    $('#orderrefno').val(refNo || '');
 
-    // Clear all form fields first (optional for reset)
-    $('#orderForm')[0].reset();
+    initVendorSelect2();
 
-    // Make AJAX request to get existing data (if any)
     $.ajax({
-        url: '/get-order-details/' + custProId, // You will need to create this route
-        type: 'GET',
-        success: function (response) {
-            if(response.success == false)
-            {
-                    $('#orderProductId').val(productId);
-                    $('#orderbranch_id').val(branchId);
-                    $('#orderProduct').text(productName);
-                    $('#orderbranch_name').text(branchName);
-                    $('#orderrefno').val(refNo);
-            }
-            else if (response.success) 
-            {
-                let data = response.data;
+      url: '/get-order-details/' + custProId,
+      type: 'GET',
+      success: function (response) {
+        if (response && response.success) {
+          const data = response.data || {};
 
-                // Populate form fields
-                $('select[name="karat"]').val(data.karat);
-                $('select[name="color_id"]').val(data.color_id);
-                $('input[name="weight"]').val(data.weight);
-                $('input[name="size"]').val(data.size);
-                $('input[name="refer_tag_number"]').val(data.refer_tag_number);
-                $('input[name="refer_image_url"]').val(data.refer_image_url);
-                $('input[name="amount"]').val(data.amount);
-               // $('input[name="rate_type"]').val(data.rate_type);
-                $('input[name="rate_fix_open"]').val(data.rate_fix_open);
-                $('textarea[name="remark"]').val(data.remark);
-                $('select[name="rate_type"]').val(data.rate_type);
-                $('select[name="given_to"]').val(data.given_to);
-                $('select[name="delivery_status"]').val(data.delivery_status);
-                $('input[name="delivery_date"]').val(data.delivery_date);
-            }
-            
+          $('select[name="karat"]').val(data.karat);
+          $('select[name="color_id"]').val(data.color_id);
+          $('input[name="weight"]').val(data.weight);
+          $('input[name="size"]').val(data.size);
+          $('input[name="refer_tag_number"]').val(data.refer_tag_number);
+          $('input[name="amount"]').val(data.amount);
+          $('select[name="rate_fix_open"]').val(data.rate_fix_open);
+          $('textarea[name="remark"]').val(data.remark);
+          $('select[name="rate_type"]').val(data.rate_type);
+          $('select[name="given_to"]').val(data.given_to).trigger('change');
+          $('select[name="delivery_status"]').val(data.delivery_status);
+          $('input[name="delivery_date"]').val(data.delivery_date);
+
+          // existing image link
+          if (data.refer_image_url) {
+            $('#existing_refer_image_url').val(data.refer_image_url);
+            $('#existingRefImageLink').show().attr('href', data.refer_image_url);
+          }
+
+          toggleNotPurchasedReason();
         }
+      }
     });
-});
+  });
 
+  // ===== Vendor dropdown: open modal on Add New Vendor
+  $(document).on('change', '#given_to', function(){
+    if ($(this).val() === '__add_vendor__') {
+      $(this).val('').trigger('change');
+      $('#vendor_name, #vendor_mobile, #vendor_address').val('');
+      $('#vendor_name_err').text('');
+      $('#vendorModal').modal('show');
+    }
+  });
 
+  // ===== Save Vendor (same as file 2 - storeAjax)
+  $(document).on('click', '#saveVendorBtn', function () {
+    $('#vendor_name_err').text('');
 
-// When the form is submitted
-$('#orderForm').on('submit', function (e) {
+    const name = ($('#vendor_name').val() || '').trim();
+    const mobile = ($('#vendor_mobile').val() || '').trim();
+    const address = ($('#vendor_address').val() || '').trim();
+
+    if (!name) {
+      $('#vendor_name_err').text('Vendor name is required.');
+      return;
+    }
+
+    $.ajax({
+      url: "{{ route('vendor.storeAjax') }}",
+      method: "POST",
+      data: {
+        _token: "{{ csrf_token() }}",
+        contact_person: name,
+        mobile_number: mobile,
+        address: address
+      },
+      success: function (res) {
+        if (res && res.success && res.vendor) {
+          const v = res.vendor;
+
+          // add option + select
+          const opt = new Option(v.contact_person, v.vendor_id, true, true);
+          $('#given_to').append(opt).trigger('change');
+
+          $('#vendorModal').modal('hide');
+        } else {
+          alert(res.message || 'Failed to create vendor.');
+        }
+      },
+      error: function (xhr) {
+        alert('Failed to create vendor.');
+      }
+    });
+  });
+
+  // ===== Submit order (FormData)
+  $('#orderForm').on('submit', function (e) {
     e.preventDefault();
 
-    toggleNotPurchasedReason(); // ensure correct validation state
+    toggleNotPurchasedReason();
 
     if (!confirm('Are you sure you want to order this product?')) return;
 
-    let formData = new FormData(this); // ✅ supports file upload
+    const fd = new FormData(this);
 
     $.ajax({
-        url: '{{ route("custOrder.orderProduct") }}',
-        method: 'POST',
-        data: formData,
-        processData: false,  // ✅ required for FormData
-        contentType: false,  // ✅ required for FormData
-        success: function (response) {
-            if (response.success) {
-                alert(response.message);
-                $('#orderModal').modal('hide');
-                location.reload();
-                // or loadProductList();
-            } else {
-                alert('Error: ' + response.message);
-            }
-        },
-        error: function (xhr) {
-            console.log(xhr.responseText);
-            alert('An unexpected error occurred.');
+      url: '{{ route("custOrder.orderProduct") }}',
+      method: 'POST',
+      data: fd,
+      processData: false,
+      contentType: false,
+      success: function (response) {
+        if (response.success) {
+          alert(response.message);
+          $('#orderModal').modal('hide');
+          loadProductList();
+        } else {
+          alert('Error: ' + (response.message ?? 'Something went wrong'));
         }
+      },
+      error: function () {
+        alert('An unexpected error occurred.');
+      }
     });
-});
+  });
 
-
-</script>
-<script>
+  // ===== Followup open/close buttons
+  (function(){
     const statusField = document.getElementById('followup_status');
     const btnOpen = document.getElementById('btnOpen');
     const btnClose = document.getElementById('btnClose');
     const closeReason = document.getElementById('close_reason');
     const fDate = document.getElementById('next_followup_date');
 
+    if(!statusField || !btnOpen || !btnClose) return;
+
     btnOpen.addEventListener('click', function () {
-        statusField.value = '0';
-        btnOpen.classList.add('btn-success');
-        btnOpen.classList.remove('btn-outline-success');
-        btnClose.classList.add('btn-outline-danger');
-        btnClose.classList.remove('btn-danger');
-        closeReason.disabled = true; // disable Close Reason
-        fDate.disabled = false; // disable Close Reason
+      statusField.value = '0';
+      btnOpen.classList.add('btn-success');
+      btnClose.classList.add('btn-outline-danger');
+      closeReason.disabled = true;
+      fDate.disabled = false;
     });
 
     btnClose.addEventListener('click', function () {
-        statusField.value = '1';
-        btnClose.classList.add('btn-danger');
-        btnClose.classList.remove('btn-outline-danger');
-        btnOpen.classList.add('btn-outline-success');
-        btnOpen.classList.remove('btn-success');
-        closeReason.disabled = false; // enable Close Reason
-        fDate.disabled = true; // enable Close Reason
+      statusField.value = '1';
+      btnClose.classList.add('btn-danger');
+      btnOpen.classList.add('btn-outline-success');
+      closeReason.disabled = false;
+      fDate.disabled = true;
     });
 
-    // On page load, ensure correct state of Close Reason
     if (statusField.value === '1') {
-        closeReason.disabled = false;
-        fDate.disabled = true;
+      closeReason.disabled = false;
+      fDate.disabled = true;
     } else {
-        closeReason.disabled = true;
-        fDate.disabled = false;
+      closeReason.disabled = true;
+      fDate.disabled = false;
     }
+  })();
 </script>
-
-<script>
-    // ✅ Category wise products map from controller
-    const productsByCategory = @json($productsByCategory);
-
-   
-
-    function updateProductDropText() {
-        let count = $('.product_cb:checked').length;
-        $('#productDropBtn').text(count ? (count + ' selected') : 'Select product(s)');
-    }
-
-    function renderProductsByCategory(catId) {
-        const menu = $('#productDropdownMenu');
-
-        // reset
-        menu.html('');
-        $('#productSelectAll').prop('checked', false);
-        updateProductDropText();
-
-        if (!catId) {
-            $('#productDropBtn').prop('disabled', true).text('Select category first');
-            menu.html('<div class="text-muted">Select category first</div>');
-            return;
-        }
-
-        const list = productsByCategory[catId] || [];
-
-        $('#productDropBtn').prop('disabled', false).text('Select product(s)');
-
-        if (list.length === 0) {
-            menu.html('<div class="text-muted">No products in this category</div>');
-            return;
-        }
-
-        let html = `
-            <label class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="productSelectAll">
-                <span class="form-check-label">Select All</span>
-            </label>
-            <hr class="my-2">
-        `;
-
-        list.forEach(p => {
-            html += `
-                <label class="form-check">
-                    <input class="form-check-input product_cb" type="checkbox"
-                           value="${p.product_id}" data-name="${p.product_name}">
-                    <span class="form-check-label">${p.product_name}</span>
-                </label>
-            `;
-        });
-
-        menu.html(html);
-    }
-
-    $(document).ready(function () {
-
-        // ✅ load list on page load
-        loadProductList();
-
-        // ✅ when category changes -> show only that category products
-        $(document).on('change', '#category_id', function () {
-            $('.error-text').text('');
-            renderProductsByCategory($(this).val());
-        });
-
-        // ✅ select all
-        $(document).on('change', '#productSelectAll', function () {
-            $('.product_cb').prop('checked', this.checked);
-            updateProductDropText();
-        });
-
-        // ✅ update button text when selecting products
-        $(document).on('change', '.product_cb', function () {
-            $('#productSelectAll').prop('checked', $('.product_cb').length === $('.product_cb:checked').length);
-            updateProductDropText();
-        });
-
-        // ✅ Add button: same as your current working store (single product_id), but run for each checked product
-        $(document).on('click', '#addProductBtn', function (e) {
-            e.preventDefault();
-            $('.error-text').text('');
-
-            let categoryId = $('#category_id').val();
-            if (!categoryId) {
-                $('#error-category_id').text('Please select category.');
-                return;
-            }
-
-            let productIds = $('.product_cb:checked').map(function () {
-                return $(this).val();
-            }).get();
-
-            if (productIds.length === 0) {
-                $('#error-product_id').text('Please select at least one product.');
-                return;
-            }
-
-            let baseData = {
-                _token: '{{ csrf_token() }}',
-                cust_id: $('#cust_id').val(),
-                category_id: categoryId,
-                visit_id: $('#visit_id').val(),
-                emp_id: $('#emp_id').val(),
-                visit_date: $('#visit_date').val(),
-                status: $('#productstatus').val()
-            };
-
-            let requests = productIds.map(pid => $.ajax({
-                url: "{{ route('custProduct.store') }}",
-                method: "POST",
-                data: Object.assign({}, baseData, { product_id: pid })
-            }));
-
-            $.when.apply($, requests).done(function () {
-                loadProductList();
-
-                // reset selections
-                $('#productDropBtn').text('Select product(s)');
-                $('#productDropdownMenu').html('<div class="text-muted">Select category first</div>');
-                $('#productDropBtn').prop('disabled', true).text('Select category first');
-                $('#category_id').val('');
-
-            }).fail(function (xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors || {};
-                    $.each(errors, function (key, value) {
-                        $('#error-' + key).text(value[0]);
-                    });
-                } else {
-                    alert('Something went wrong while adding products.');
-                }
-            });
-        });
-
-    });
-
-    function toggleNotPurchasedReason() {
-    let $status = $('select[name="delivery_status"]'); // change name if yours is different
-    let val = ($status.val() || '').toString().toLowerCase();
-    let text = ($status.find('option:selected').text() || '').toLowerCase();
-
-    let isNotPurchased =
-        val === 'not_purchased' || val === '0' || text.includes('not purchased');
-
-    if (isNotPurchased) {
-        $('#notPurchasedReasonWrap').show();
-        $('#not_purchased_reason').prop('required', true);
-    } else {
-        $('#notPurchasedReasonWrap').hide();
-        $('#not_purchased_reason').prop('required', false).val('');
-    }
-}
-
-$(document).on('change', 'select[name="delivery_status"]', function () {
-    toggleNotPurchasedReason();
-});
-$(document).on('change', '#refer_image', function () {
-    const file = this.files && this.files[0];
-    if (!file) return;
-
-    const url = URL.createObjectURL(file);
-    $('#refer_image_preview').attr('src', url).show();
-});
-
-// purchased product listing 
-function loadProductList() {
-    $.ajax({
-        url: "{{ route('newVisite.product', $id) }}",
-        type: "GET",
-        success: function (products) {
-
-            let htmlProduct = '';
-            let htmlPurchased = '';
-            let i1 = 1, i2 = 1;
-
-            products.forEach(function (item) {
-
-                // ✅ purchased condition (keep simple)
-                let ds = item.order_details ? item.order_details.delivery_status : null;
-                let isPurchased = (ds == 9 || (ds && ds.toString().toLowerCase() === 'Purchased'));
-
-                // ✅ buttons (use your same buttons)
-                let actionButtons = `
-                            <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        `;
-
-                        // ✅ show Edit only if ordered (order_details exists)
-                        if (item.order_details !== null) {
-                            actionButtons += `
-                                <button type="button"
-                                    class="btn btn-success btn-sm editStatus"
-                                    data-id="${item.cust_pro_id}"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#editModal">
-                                    <i class="fa fa-edit"></i>
-                                </button>
-                            `;
-                        }
-
-                        // ✅ Order button always visible (ordered or not ordered)
-                        actionButtons += `
-                            <button type="button"
-                                class="btn btn-success btn-sm orderProduct"
-                                data-id="${item.cust_pro_id}"
-                                data-name="${item.product?.product_name ?? ''}"
-                                data-product="${item.product_id}"
-                                data-branch="${item.branch_id}"
-                                data-refno="${item.product?.product_tag ?? ''}"
-                                data-branchname="${item.branch?.branch_name ?? ''}"
-                                data-bs-toggle="modal"
-                                data-bs-target="#orderModal">
-                                <i class="fa fa-shopping-cart" title="Order Product"></i>
-                            </button>
-                        `;
-
-
-                let row = `
-                    <tr id="row-${item.cust_pro_id}">
-                        <td>__NO__</td>
-                        <td>${item.category ? item.category.category_name : '-'}</td>
-                        <td>${item.product ? item.product.product_name : '-'}</td>
-                        <td>${item.order_details?.order_status?.status ?? item.status}</td>
-                        <td>${item.employee ? item.employee.emp_name : '-'}</td>
-                        <td>${actionButtons}</td>
-                    </tr>
-                `;
-
-                if (isPurchased) {
-                    htmlPurchased += row.replace('__NO__', i2++);
-                } else {
-                    htmlProduct += row.replace('__NO__', i1++);
-                }
-            });
-
-            if (htmlProduct === '') {
-                htmlProduct = `<tr><td colspan="6" class="text-center text-muted">No products</td></tr>`;
-            }
-            if (htmlPurchased === '') {
-                htmlPurchased = `<tr><td colspan="6" class="text-center text-muted">No purchased products</td></tr>`;
-            }
-
-            $('#productTableBody').html(htmlProduct);
-            $('#purchasedTableBody').html(htmlPurchased);
-        }
-    });
-}
-
-</script>
-
 @endsection

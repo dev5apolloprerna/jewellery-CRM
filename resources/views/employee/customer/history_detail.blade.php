@@ -2,6 +2,35 @@
 
 @section('content')
 <style>
+  .tabs-wrap{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tab-link{
+    text-decoration:none;
+    border:1px solid #eee;
+    background:#fff;
+    padding:10px 14px;
+    border-radius:12px;
+    font-weight:600;
+    color:#374151;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,.04);
+    transition:.15s;
+  }
+  .tab-link:hover{transform:translateY(-1px)}
+  .tab-link.active{
+    background:#5c2323;
+    border-color:#5c2323;
+    color:#fff;
+  }
+  .tab-ic{
+    width:30px;height:30px;border-radius:10px;
+    display:grid;place-items:center;
+    background:#f3f4f6;color:#111827;
+  }
+  .tab-link.active .tab-ic{background:rgba(255,255,255,.18);color:#fff}
+</style>
+<style>
     /* Simple, consistent look */
     .box { background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.06); }
     .box + .box { margin-top:24px; }
@@ -39,6 +68,87 @@
 <div class="main-content">
     <div class="page-content">
         <div class="container-fluid">
+
+@php
+    $r = \Illuminate\Support\Facades\Route::currentRouteName();
+
+    // current customer id
+    $cid = $customer->customer_id ?? null;
+
+    // latest visit (same logic as your listing)
+    $latest = $customer->latestVisit ?? null;
+
+    // try detect any order id for payment tab (only show if found)
+    $orderId = $order->order_id ?? null;
+
+    // fallback: try from visit blocks (if you have order breakdown)
+    if(!$orderId && !empty($visitBlocks) && count($visitBlocks)){
+        foreach($visitBlocks as $b){
+            if(!empty($b['orderBreakdown']) && count($b['orderBreakdown'])){
+                $orderId = $b['orderBreakdown'][0]['order_id'] ?? null;
+                if($orderId) break;
+            }
+        }
+    }
+@endphp
+
+<div class="tabs-wrap">
+    
+    {{-- New Visit (EMPvisit.create) --}}
+    @if($latest)
+        @if(($latest->followup_status ?? 0) == 1)
+            <a class="tab-link {{ $r=='EMPvisit.create' ? 'active' : '' }}"
+               title="New Visit"
+               href="{{ route('EMPvisit.create', $cid) }}">
+                <span class="tab-ic"><i class="fas fa-plus-circle"></i></span>
+                New Visit
+            </a>
+        @endif
+    @else
+        <a class="tab-link {{ $r=='EMPvisit.create' ? 'active' : '' }}"
+           title="New Visit"
+           href="{{ route('EMPvisit.create', $cid) }}">
+            <span class="tab-ic"><i class="fas fa-plus-circle"></i></span>
+            New Visit
+        </a>
+    @endif
+
+    {{-- Previous Visit (EMPvisit.previous_visit) --}}
+    @if($latest)
+        <a class="tab-link {{ $r=='EMPvisit.previous_visit' ? 'active' : '' }}"
+           title="Customer Previous Visit"
+           href="{{ route('EMPvisit.previous_visit', $cid) }}">
+            <span class="tab-ic"><i class="fa fa-message"></i></span>
+            Previous Visit
+        </a>
+    @endif
+
+    {{-- Customer History (EMPcustomer.history) --}}
+    <a class="tab-link {{ $r=='EMPcustomer.history' ? 'active' : '' }}"
+       title="Customer Order"
+       href="{{ route('EMPcustomer.history', $cid) }}">
+        <span class="tab-ic"><i class="fa fa-eye"></i></span>
+        History
+    </a>
+
+    {{-- Orders list (EMPcustOrder.index) --}}
+    <a class="tab-link {{ $r=='EMPcustOrder.index' ? 'active' : '' }}"
+       title="Orders"
+       href="{{ route('EMPcustOrder.index') }}">
+        <span class="tab-ic"><i class="fa fa-shopping-bag"></i></span>
+        Orders
+    </a>
+
+    {{-- Payment details (EMPorderPayment.index) --}}
+    @if($orderId)
+        <a class="tab-link {{ $r=='EMPorderPayment.index' ? 'active' : '' }}"
+           title="Payment Details"
+           href="{{ route('EMPorderPayment.index', $orderId) }}">
+            <span class="tab-ic"><i class="fa fa-credit-card"></i></span>
+            Payment
+        </a>
+    @endif
+</div>
 
             {{-- CUSTOMER HEADER --}}
             <div class="box">

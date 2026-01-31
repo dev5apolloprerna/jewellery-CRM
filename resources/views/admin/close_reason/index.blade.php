@@ -35,6 +35,19 @@
                                                     @endif
                                                 </div>
 
+                                                <div class="mt-4 mb-3">
+                                                    Close Reason Type <span style="color:red;">*</span>
+                                                    <select class="form-control" name="type">
+                                                            <option value="follow-up">Followup Reason</option>
+                                                            <option value="purchase">Not Purchase</option>
+                                                    </select>
+                                                    @if($errors->has('close_reason'))
+                                                         <span class="text-danger">
+                                                            {{ $errors->first('close_reason') }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+
                                             </div>
                                             <div class="modal-footer">
                                                 <div class="hstack gap-2 justify-content-end">
@@ -63,6 +76,7 @@
                                         <tr>
                                             <th scope="col">No</th>
                                             <th scope="col">Close Reason</th>
+                                            <th scope="col">Type</th>
                                             <th scope="col">Action</th>
                                         </tr>
                                     </thead>
@@ -73,6 +87,16 @@
                                                 <td>
                                                     {{ $i + $Category->perPage() * ($Category->currentPage() - 1) }}
                                                 <td>{{ $cat->close_reason }}</td>
+                                                <td>
+                                                    @php
+                                                      $typeLabel = [
+                                                        'purchase'  => 'Not Purchase Reason',
+                                                        'follow-up' => 'Followup Reason',
+                                                      ];
+                                                    @endphp
+
+                                                    {{ $typeLabel[$cat->type] ?? $cat->type }}
+                                                </td>
 
                                                 <td>
                                                     <div>
@@ -120,7 +144,21 @@
                                         Close Reason<span style="color:red;">*</span>
                                         <input type="text" name="close_reason" class="form-control" onblur="validateeditname();" placeholder="Enter Close Reason" id="Editcustname" maxlength="100" required>
                                     </div>
+
+                                    <div class="mt-4 mb-3">
+                                    Close Reason Type <span style="color:red;">*</span>
+                                    <select class="form-control" name="type" id="editType">
+                                            <option value="follow-up">Followup Reason</option>
+                                            <option value="purchase">Not Purchase</option>
+                                    </select>
+                                    @if($errors->has('close_reason'))
+                                         <span class="text-danger">
+                                            {{ $errors->first('close_reason') }}
+                                        </span>
+                                    @endif
                                 </div>
+                                </div>
+
                                 <div class="modal-footer">
                                     <div class="hstack gap-2 justify-content-end">
                                         <button type="submit" class="btn btn-primary mx-2" id="add-btn">Update</button>
@@ -197,6 +235,7 @@
                         //console.log(data);
                         var obj = JSON.parse(data);
                         $('#Editcustname').val(obj.close_reason);
+                        $('#editType').val(obj.type);
                         $('#close_reason_id').val(id);
                     }
                 });

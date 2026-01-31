@@ -1,6 +1,38 @@
 @extends('layouts.app')
 
+@section('title', 'Customer History List')
+
 @section('content')
+<style>
+  .tabs-wrap{display:flex;gap:10px;flex-wrap:wrap}
+  .tab-link{
+    text-decoration:none;
+    border:1px solid #eee;
+    background:#fff;
+    padding:10px 14px;
+    border-radius:12px;
+    font-weight:600;
+    color:#374151;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,.04);
+    transition:.15s;
+  }
+  .tab-link:hover{transform:translateY(-1px)}
+  .tab-link.active{
+    background:#5c2323;
+    border-color:#5c2323;
+    color:#fff;
+  }
+  .tab-ic{
+    width:30px;height:30px;border-radius:10px;
+    display:grid;place-items:center;
+    background:#f3f4f6;color:#111827;
+  }
+  .tab-link.active .tab-ic{background:rgba(255,255,255,.18);color:#fff}
+</style>
+
 <style>
     /* Simple, consistent look */
     .box { background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.06); }
@@ -9,13 +41,23 @@
     .box-title { font-weight:700;color:#3b3b3b;font-size:18px; display:flex; align-items:center; gap:10px; }
     .box-body { padding:18px; }
     .muted { color:#6b7280;font-size: .92rem; }
-    .grid-2,.grid-3,.grid-4{display:grid;gap:12px}
-    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media (max-width:992px){ .grid-3,.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))} }
-    @media (max-width:576px){ .grid-2,.grid-3,.grid-4{grid-template-columns:1fr} }
+    .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{display:grid;gap:12px}
+        .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+        .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+        .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+        .grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+        .grid-6{grid-template-columns:repeat(6,minmax(0,1fr))}
 
+
+        @media (max-width:1200px){
+        .grid-5,.grid-6{grid-template-columns:repeat(3,minmax(0,1fr))}
+        }
+        @media (max-width:992px){
+        .grid-5,.grid-6{grid-template-columns:repeat(2,minmax(0,1fr))}
+        }
+        @media (max-width:576px){
+        .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:1fr}
+        }
     .pill { background:#f3f4f6;border-radius:999px;padding:6px 10px;font-size:.82rem;color:#374151; }
     .badge { border-radius:8px;padding:6px 10px;font-size:.78rem; }
     .badge-green { background:#e8f8ef;color:#0e7a49; }
@@ -36,9 +78,82 @@
     $fmt = fn($n) => number_format((float)($n ?? 0), 2);
 @endphp
 
+
 <div class="main-content">
     <div class="page-content">
         <div class="container-fluid">
+
+
+@php
+    $r = \Illuminate\Support\Facades\Route::currentRouteName();
+    $cid = $customer->customer_id; // adjust if different
+    $latest = $customer->latestVisit ?? null;
+
+    $orderId = null;
+    if(isset($order) && !empty($order->order_id)){
+        $orderId = $order->order_id;
+    }
+    if(!$orderId && !empty($visitBlocks) && count($visitBlocks)){
+        foreach($visitBlocks as $b){
+            if(!empty($b['orderBreakdown']) && count($b['orderBreakdown'])){
+                $orderId = $b['orderBreakdown'][0]['order_id'] ?? null;
+                if($orderId) break;
+            }
+        }
+    }
+@endphp
+
+<div class="tabs-wrap mb-3">
+    {{-- Customer History (existing) --}}
+    <a class="tab-link {{ $r=='customer.history' ? 'active' : '' }}"
+       href="{{ route('customer.history', $cid) }}">
+        <span class="tab-ic"><i class="fa fa-eye"></i></span>
+         History
+    </a>
+    {{-- New Visit --}}
+    @if($latest)
+        @if(($latest->followup_status ?? 0) == 1)
+            <a class="tab-link {{ $r=='newVisite.create' ? 'active' : '' }}"
+               href="{{ route('newVisite.create', $cid) }}">
+                <span class="tab-ic"><i class="fas fa-plus-circle"></i></span>
+                New Visit
+            </a>
+        @endif
+    @else
+        <a class="tab-link {{ $r=='newVisite.create' ? 'active' : '' }}"
+           href="{{ route('newVisite.create', $cid) }}">
+            <span class="tab-ic"><i class="fas fa-plus-circle"></i></span>
+            New Visit
+        </a>
+    @endif
+
+    {{-- Previous Visit --}}
+    @if($latest)
+        <a class="tab-link {{ $r=='newVisite.previous_visit' ? 'active' : '' }}"
+           href="{{ route('newVisite.previous_visit', $cid) }}">
+            <span class="tab-ic"><i class="fa fa-message"></i></span>
+            Previous Visit
+        </a>
+    @endif
+
+    
+
+    {{-- Orders List (NEW) --}}
+    <a class="tab-link {{ $r=='custOrder.index' ? 'active' : '' }}"
+       href="{{ route('custOrder.index') }}">
+        <span class="tab-ic"><i class="fa fa-shopping-bag"></i></span>
+        Orders
+    </a>
+
+    {{-- Order Payment (NEW) --}}
+    @if($orderId)
+        <a class="tab-link {{ $r=='orderPayment.index' ? 'active' : '' }}"
+           href="{{ route('orderPayment.index', $orderId) }}">
+            <span class="tab-ic"><i class="fa fa-credit-card"></i></span>
+            Order Payment
+        </a>
+    @endif
+</div>
 
             {{-- CUSTOMER HEADER --}}
             <div class="box">
@@ -58,7 +173,7 @@
 
     <div class="box-body">
         {{-- Row 1: core contact --}}
-        <div class="grid-4">
+        <div class="grid-6">
             <div class="kv">
                 <small>Name</small>
                 <div>{{ $customer->customer_name ?? '-' }}</div>
@@ -87,10 +202,6 @@
                 <small>City</small>
                 <div>{{ $customer->city ?? '-' }}</div>
             </div>
-        </div>
-
-        {{-- Row 2: profile & location --}}
-        <div class="grid-4" style="margin-top:12px">
             <div class="kv">
                 <small>Cast</small>
                 <div>{{ data_get($customer, 'cast.cast', '-') }}</div>
@@ -99,9 +210,36 @@
                 <small>Branch</small>
                 <div>{{ data_get($customer, 'branch.branch_name', '-') }}</div>
             </div>
+        </div>
+
+        {{-- Row 2: profile & location --}}
+        <div class="grid-6" style="margin-top:12px">
+            
             <div class="kv">
                 <small>Address</small>
                 <div>{{ $customer->address ?? '-' }}</div>
+            </div>
+            <div class="kv">
+                <small>Customer Type</small>
+                <div>{{ $customer->custCat->cust_cat_name ?? '-' }}</div>
+            </div>
+            <div class="kv">
+                <small>Rate</small>
+                <div>{{ $customer->rate ?? '-' }}</div>
+            </div>
+            <div class="kv">
+                <small>Beverage</small>
+                <div>{{ $customer->beverage ?? '-' }}</div>
+                <small>Suger</small>
+                <div>{{ $customer->suger ?? '-' }}</div>
+            </div>
+            <div class="kv">
+                <small>Birthday</small>
+                <div>{{ date('d-m-Y',strtotime($customer->birthdate)) ?? '-' }}</div>
+            </div>
+            <div class="kv">
+                <small>Anniversary </small>
+                <div>{{ date('d-m-Y',strtotime($customer->anniversary_date))  ?? '-' }}</div>
             </div>
         </div>
 
@@ -326,3 +464,5 @@
     </div>
 </div>
 @endsection
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">

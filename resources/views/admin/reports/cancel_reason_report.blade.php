@@ -17,11 +17,7 @@
                                 style="display: flex;
                             justify-content: space-between;">
                                 <h5 class="card-title mb-0">Cancel Reason Report</h5>
-                                 <button onclick="genrateToexcel()" type="button" class="btn btn-primary mt-4"> 
-                                    Export to Excel
-                                </button>
-
-                                <!-- <a href="{{ route('empMaster.create') }}" class="btn btn-sm btn-primary">
+                                 <!-- <a href="{{ route('empMaster.create') }}" class="btn btn-sm btn-primary">
                                     <i data-feather="plus"></i> Add New
                                 </a> -->
                             </div>
@@ -51,7 +47,7 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-                                    <table class="table table-bordered">
+                                   <table id="cancelReasonTable" class="table table-bordered table-striped nowrap align-middle" style="width:100%">
                                         <thead>
                                             <tr>
                                                 <th>No</th>
@@ -91,18 +87,62 @@
 @endsection
 
 @section('scripts')
+
+    {{-- DataTables CSS --}}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+    {{-- jQuery + DataTables --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    {{-- Buttons --}}
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+
+    <style>
+        #cancelReasonTable_filter label { font-weight: 600; margin-bottom: 0; }
+        #cancelReasonTable_filter input { width: 260px; }
+    </style>
+
     <script>
-        function genrateToexcel()
-    {
-        var Url = "{{route('reports.export_cancel_reason_report')}}";
-        window.location.href = Url;
-    }
-        function deleteData(id) {
-            $("#deleteid").val(id);
-        }
-          function myFunction() 
-        {
-            $('#search').removeAttr('value');
-        }
+        $(document).ready(function () {
+
+            $('#cancelReasonTable').DataTable({
+                responsive: true,
+                pageLength: 25,
+                order: [[2, 'desc']], // Count desc
+
+                // ✅ Search LEFT, Buttons RIGHT
+                dom:
+                    "<'row mb-2 align-items-center'" +
+                        "<'col-md-6 d-flex justify-content-start'f>" +
+                        "<'col-md-6 d-flex justify-content-end'B>" +
+                    ">" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row mt-2'<'col-md-5'i><'col-md-7'p>>",
+
+                buttons: [
+                    {
+                        text: 'Export to Excel',
+                        className: 'btn btn-primary',
+                        action: function () {
+                            window.location.href = "{{ route('reports.export_cancel_reason_report') }}";
+                        }
+                    }
+                ],
+
+                initComplete: function () {
+                    // ✅ Bootstrap search input
+                    const $input = $('#cancelReasonTable_filter input');
+                    $input.addClass('form-control form-control-sm');
+                    $('#cancelReasonTable_filter label').addClass('d-flex align-items-center gap-2');
+                }
+            });
+
+            // ✅ space between buttons
+            $('.dt-buttons .btn').addClass('ms-2');
+        });
     </script>
 @endsection

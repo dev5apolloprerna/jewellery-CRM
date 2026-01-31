@@ -50,12 +50,12 @@
                                             
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                            <input class="btn btn-primary mt-4"  type="submit" value="{{'Search'}}">
+                                            <!-- <input class="btn btn-primary mt-4"  type="submit" value="{{'Search'}}"> -->
                                             <input class="btn btn-primary mt-4"  type="submit" onclick="myFunction()" value="{{'Reset'}}">
-                                            <button onclick="genrateToexcel()" type="button" class="btn btn-primary mt-4"> 
+                                            <!-- <button onclick="genrateToexcel()" type="button" class="btn btn-primary mt-4"> 
                                                 Export to Excel
                                             </button>
-
+ -->
                                             </div>
                                         </div>
                                     </div>
@@ -70,7 +70,7 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-                                <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
+                                <table id="orderTable" class="table table-bordered table-striped nowrap align-middle" style="width:100%">
 
                                         <thead>
                                             <tr>
@@ -124,7 +124,7 @@
                                     </table>
                                     <div class="d-flex justify-content-center mt-3">
 
-                                        {{ $orders->links() }}
+                                        <!-- {{ $orders->links() }} -->
                                     </div>
                                                                 </div>
                         </div>
@@ -136,26 +136,92 @@
 
 @endsection
 @section('scripts')
-    <script>
-function genrateToexcel() 
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+<style>
+    #orderTable_filter label { font-weight: 600; margin-bottom: 0; }
+    #orderTable_filter input { width: 260px; }
+</style>
+
+<script>
+$(document).ready(function () {
+
+    // ✅ DataTable
+    $('#orderTable').DataTable({
+        responsive: true,
+        pageLength: 25,
+        ordering: true,
+        order: [[0, 'desc']], // Date column desc
+
+        // ✅ Search LEFT, Export RIGHT
+        dom:
+            "<'row mb-2 align-items-center'" +
+                "<'col-md-6 d-flex justify-content-start'f>" +
+                "<'col-md-6 d-flex justify-content-end'B>" +
+            ">" +
+            "<'row'<'col-12'tr>>" +
+            "<'row mt-2'<'col-md-5'i><'col-md-7'p>>",
+
+        // ✅ Right side excel export button (route based)
+        buttons: [
+            {
+                text: 'Export to Excel',
+                className: 'btn btn-primary',
+                action: function () {
+                    genrateToexcel();
+                }
+            }
+        ],
+
+        initComplete: function () {
+            const $input = $('#orderTable_filter input');
+            $input.addClass('form-control form-control-sm');
+            $('#orderTable_filter label').addClass('d-flex align-items-center gap-2 mb-0');
+        }
+    });
+
+    $('.dt-buttons .btn').addClass('ms-2');
+
+    // ✅ Auto search without clicking search button (server-side form submit)
+    $('#from_date, #to_date, #emp_id').on('change', function () {
+        $('#myForm').submit();
+    });
+
+});
+
+// ✅ Export route (same as yours)
+function genrateToexcel()
 {
     var fromDate = $('#from_date').val();
     var toDate = $('#to_date').val();
     var empId = $('#emp_id').val();
 
-     var Url = "{{route('reports.export_order_reports',[":fromDate",":toDate",":empId"])}}";
+    var Url = "{{ route('reports.export_order_reports',[":fromDate",":toDate",":empId"]) }}";
     Url = Url.replace(':fromDate', fromDate ? fromDate : '0');
     Url = Url.replace(':toDate', toDate ? toDate : '0');
     Url = Url.replace(':empId', empId ? empId : '0');
-            window.location.href = Url;
 
+    window.location.href = Url;
 }
 
-          function myFunction() 
-        {
-            $('#fromDate').removeAttr('value');
-            $('#toDate').removeAttr('value');
-            $('#emp_id').val('');
-        }
-    </script>
+// ✅ Reset (fixed ids) + auto submit
+function myFunction()
+{
+    $('#from_date').val('');
+    $('#to_date').val('');
+    $('#emp_id').val('');
+    $('#myForm').submit();
+}
+</script>
 @endsection

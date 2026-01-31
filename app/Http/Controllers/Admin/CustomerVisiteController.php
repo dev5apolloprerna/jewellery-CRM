@@ -19,6 +19,7 @@ use App\Models\Vendor;
 use App\Models\Color;
 use App\Models\Purity;
 use App\Models\OrderStatus;
+use App\Models\CustOrder;
 use Carbon\Carbon;
 
 class CustomerVisiteController extends Controller
@@ -68,7 +69,8 @@ class CustomerVisiteController extends Controller
         $employees = Employee::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>2])
             ->orderBy('emp_name', 'asc')->get();
 
-        $closereason = CloseReason::orderBy('close_reason','asc')->get();
+        $closereason = CloseReason::where(['type'=>'follow-up'])->orderBy('close_reason','asc')->get();
+        $notPurchasereason = CloseReason::where(['type'=>'purchase'])->orderBy('close_reason','asc')->get();
         $color = Color::all();
         $purity = Purity::all();
         $orderStatus = OrderStatus::all();
@@ -78,7 +80,7 @@ class CustomerVisiteController extends Controller
         return view('admin.new_visite.create', compact(
             'Category','Customer','id','CustProducts','employees','closereason',
             'color','branches','vendor','purity','orderStatus',
-            'Products','productsByCategory'
+            'Products','productsByCategory','notPurchasereason'
         ));
     }
 
@@ -177,9 +179,13 @@ class CustomerVisiteController extends Controller
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
+            $orderId = CustOrder::where('visit_id', $id)
+                        ->latest('order_id')
+                        ->value('order_id');
+
             return view('admin.new_visite.previous_visit_view', compact(
                 'Category','Customer','id','Followups','Products','CustProducts','employees','feedback',
-                'closereason','branches','color','vendor','purity','orderStatus','productsByCategory'
+                'closereason','branches','color','vendor','purity','orderStatus','productsByCategory','orderId'
             ));
         } catch (\Exception $e) {
             report($e);
