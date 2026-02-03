@@ -328,9 +328,54 @@
                             </table>
                         </div>
 
-                        {{-- PURCHASED PRODUCTS --}}
+                        {{-- ORDERED PRODUCTS --}}
                         <div style="margin-bottom:18px">
                             <div class="section-label">Ordered Product List</div>
+                            <table class="tbl">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Product</th>
+                                        <th>Karat</th>
+                                        <th>Color</th>
+                                        <th>Weight</th>
+                                        <th>Size</th>
+                                        <th>Order Given To</th>
+                                        <th>Delivery Date</th>
+                                        <th>Status</th>
+                                        <th>Attended By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($block['orderedProducts'] as $pp)
+                                    @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
+                                    <tr>
+                                        <td>{{ $pp->category->category_name ?? '' }}</td>
+                                        <td>{{ $pp->product->product_name ?? '' }}</td>
+                                        <td>{{ $pp->orderDetails->karat ?? '-' }}</td>
+                                        <td>{{ $pp->orderDetails->color->color_name ?? '-' }}</td>
+                                        <td>{{ $pp->orderDetails->weight ?? '-' }}</td>
+                                        <td>{{ $pp->orderDetails->size ?? '-' }}</td>
+                                        <td>{{ $pp->orderDetails->vendor->contact_person ?? '-' }}</td>
+                                        <td>{{ $dd ? \Carbon\Carbon::parse($dd)->format('d-m-Y') : '-' }}</td>
+                                        <td>
+                                            <span class="badge {{ ($pp->status ?? '') === 'processing' ? 'badge-amber' : 'badge-sky' }}">
+                                                {{ $pp->orderDetails->OrderStatus->status ?? $pp->status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $pp->employee->emp_name ?? '' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="10" class="muted" style="text-align:center">No purchased products</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        {{-- PURCHASED PRODUCTS --}}
+                        <div style="margin-bottom:18px">
+                            <div class="section-label">Purchase Product List</div>
                             <table class="tbl">
                                 <thead>
                                     <tr>
@@ -363,6 +408,42 @@
                                                 {{ $pp->orderDetails->OrderStatus->status ?? $pp->status }}
                                             </span>
                                         </td>
+                                        <td>{{ $pp->employee->emp_name ?? '' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="10" class="muted" style="text-align:center">No purchased products</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        {{-- Not PURCHASED PRODUCTS --}}
+                        <div style="margin-bottom:18px">
+                            <div class="section-label">Not Purchase Product List</div>
+                            <table class="tbl">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Product</th>
+                                        <th>Status</th>
+                                        <th>Not Purchase Reason</th>
+                                        <th>Attended By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($block['NotpurchasedProducts'] as $pp)
+                                    @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
+                                    <tr>
+                                        <td>{{ $pp->category->category_name ?? '' }}</td>
+                                        <td>{{ $pp->product->product_name ?? '' }}</td>
+                                        <td>
+                                            <span class="badge {{ ($pp->status ?? '') === 'processing' ? 'badge-amber' : 'badge-sky' }}">
+                                                {{ $pp->orderDetails->OrderStatus->status ?? $pp->status }}
+                                            </span>
+                                        </td>
+                                         <td>{{ $pp->orderDetails->notPurchasedReason->close_reason ?? '-' }}</td>
+                                       
                                         <td>{{ $pp->employee->emp_name ?? '' }}</td>
                                     </tr>
                                 @empty

@@ -104,5 +104,17 @@
         @error('suger') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
 
+      <div class="col-lg-6 col-md-6">
+        <label class="form-label">Rate </label>
+        <select name="rate" class="form-control">
+            <option value="">Select Rate</option>
+            <option value="Fix" {{ old('Fix', $customer->Fix ?? '') == 'Fix' ? 'selected' : '' }}>Fix</option>
+            <option value="Open" {{ old('Open', $customer->Open ?? '') == 'Open' ? 'selected' : '' }}>Open</option>
+        </select>
+        @error('rate') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
+
+
     
     

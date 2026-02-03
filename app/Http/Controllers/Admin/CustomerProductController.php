@@ -4,6 +4,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
 
 use Illuminate\Http\Request;
 
@@ -18,35 +20,49 @@ use App\Models\CustOrderDetail; // assuming you have this
 
 class CustomerProductController extends Controller
 {
-        public function index($id)
-        {
-            try
-            {
-                $user = Auth::guard('web_employees')->user();
-    
-                if ($user && $user->emp_id != null && $user->branch_id != null) 
-                {
-                    $empid = $user->emp_id;
-                    $branch_id = $user->branch_id;
-        
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus'])->where(['visit_id'=>$id])->orderBy('product_id','desc')->get();
-                            return response()->json($products);
+    public function index($id)
+    {
+        try {
+            $products = CustomerProduct::with([
+                'customer',
+                'product',
+                'employee',
+                'category',
+                'branch',
+                'orderDetails.OrderStatus'
+            ])
+            ->where('visit_id', $id)
+            ->orderBy('product_id', 'desc')
+            ->get();
 
-                    //return view('employee.cust_product.index', compact('products','id'));
+            // collect cust_pro_ids
+            $custProIds = $products->pluck('cust_pro_id')->filter()->values();
+
+            // fetch not purchased reason text
+            $reasonMap = DB::table('cust_order_detail    as od')
+                ->leftJoin('followup_close_reason as cr', 'cr.close_reason_id', '=', 'od.not_purchased_reason')
+                ->whereIn('od.cust_pro_id', $custProIds)
+                ->pluck('cr.close_reason', 'od.cust_pro_id');
+
+            // inject reason text
+            foreach ($products as $p) {
+                if ($p->orderDetails) {
+                    $p->orderDetails->not_purchased_reason_text =
+                        $reasonMap[$p->cust_pro_id] ?? null;
                 }
-                else
-                {
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus'])->where(['visit_id'=>$id])->orderBy('product_id','desc')->get();
-
-                            return response()->json($products);
-
-                   //return view('admin.cust_product.index', compact('products','id'));
-                }
-            } catch (\Exception $e) 
-            {
-                    return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
             }
+
+            return response()->json($products);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
+    }
+
+
 
         public function create($id)
         {

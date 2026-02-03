@@ -35,29 +35,28 @@ class CustomerOrderController extends Controller
         
                 //$orders = CustOrder::with(['branch','customer','customerVisit','orderDetails.employee'])->where(['emp_id'=>$empid])->whereNotNull('visit_id')->orderBy('order_id','desc')->paginate(env('PER_PAGE_COUNT'));
                 $orders = CustOrder::with([
-                            'branch', 
-                            'customer', 
-                            'customerVisit', 
-                            'orderDetails.employee', 
+                            'branch',
+                            'customer',
+                            'customerVisit',
+                            'orderDetails.employee',
                             'orderDetails.OrderStatus',
                             'payment_detail'
                         ])
-                        ->whereHas('orderDetails', function ($q) use ($branch_id) {
-                            $q->where('branch_id', $branch_id);
-                            $q->where('delivery_status', '!=',9);
+                        ->whereHas('orderDetails', function ($q) use ($branch_id, $empid) {
+                            $q->where('branch_id', $branch_id)
+                              ->where('delivery_status', '!=', 9)
+                              ->where('emp_id', $empid); // ✅ emp_id in cust_order_detail
                         })
                         ->whereNotNull('visit_id');
-                
-                            if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                                $orders->whereHas('payment_detail', function ($q) use ($date) {
-                                    $q->whereDate('next_followup_date', Carbon::parse($date));
-                                });
-                            }
 
+                    if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                        $orders->whereHas('payment_detail', function ($q) use ($date) {
+                            $q->whereDate('next_followup_date', \Carbon\Carbon::parse($date));
+                        });
+                    }
 
-                
                     $orders = $orders->orderBy('order_id', 'desc')
-                     ->paginate(env('PER_PAGE_COUNT'));
+                        ->paginate(env('PER_PAGE_COUNT'));
 
 
                 $orderStatus = OrderStatus::all();
@@ -288,7 +287,7 @@ public function purchased(Request $request,$date = null)
                     $existingOrderDetail->remark = $request->remark;
                     $existingOrderDetail->delivery_date = $request->delivery_date;
                     $existingOrderDetail->delivery_status = $request->delivery_status;
-                    $existingOrderDetail->not_purchased_reason = $request->not_purchased_reason;
+                    $existingOrderDetail->not_purchased_reason = $request->not_purchased_reason_id;
                     $existingOrderDetail->rate_type = $request->rate_type;
                     $existingOrderDetail->rate_fix_open = $request->rate_fix_open;
                     $existingOrderDetail->save();

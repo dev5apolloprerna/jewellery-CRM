@@ -56,7 +56,6 @@
 @php
     $route = \Illuminate\Support\Facades\Route::currentRouteName();
     $cid   = $Customer->customer_id ?? $id;
-    $orderId = $order->order_id ?? null;
 @endphp
 
 
@@ -262,6 +261,7 @@
                                                 <th>Product</th>
                                                 <th>Status</th>
                                                 <th>Employee</th>
+                                                <th>Reason</th>
                                                 <th>Action</th>
                                             </tr>
                                             </thead>
@@ -558,11 +558,15 @@
                             <input type="date" name="delivery_date" class="form-control">
                         </div>
 
-                        <div class="col-lg-6 col-md-6 mt-3" id="notPurchasedReasonWrap">
-                            <label class="form-label">Reason (Not Purchased) <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="not_purchased_reason" id="not_purchased_reason" rows="2"
-                                      placeholder="Enter reason..."></textarea>
-                        </div>
+                         <div class="col-lg-4 col-md-6 mt-2" id="notPurchasedReasonWrap" style="display:none;">
+                              <label class="form-label">Reason (Not Purchased)</label>
+                              <select class="form-control" name="not_purchased_reason_id" id="not_purchased_reason_id">
+                                <option value="">Select Reason</option>
+                                @foreach($notPurchasereason as $cs)
+                                  <option value="{{ $cs->close_reason_id }}">{{ $cs->close_reason }}</option>
+                                @endforeach
+                              </select>
+                            </div>
                     </div>
                 </div>
 
@@ -615,6 +619,9 @@
 @endsection
 
 @section('scripts')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
     // ✅ Category wise products map
     const productsByCategory = @json($productsByCategory ?? []);
@@ -667,14 +674,17 @@
         menu.html(html);
     }
 
-    function toggleNotPurchasedReason() {
+   function toggleNotPurchasedReason() {
         const txt = ($('#delivery_status option:selected').text() || '').toLowerCase();
+
         if (txt.includes('not purchased')) {
             $('#notPurchasedReasonWrap').show();
-            $('#not_purchased_reason').prop('required', true);
+            $('#not_purchased_reason_id').prop('required', true);
         } else {
             $('#notPurchasedReasonWrap').hide();
-            $('#not_purchased_reason').prop('required', false).val('');
+            $('#not_purchased_reason_id')
+                .prop('required', false)
+                .val('');
         }
     }
 
@@ -754,7 +764,10 @@
                         return;
                     }
 
-                    if (isNotPurchased) {
+                   if (isNotPurchased) {
+                    const reason = item.order_details?.not_purchased_reason_text ?? '-';
+
+console.log(item.order_details);
                         notPurchasedHtml += `
                             <tr id="row-${item.cust_pro_id}">
                                 <td>${n3++}</td>
@@ -762,11 +775,14 @@
                                 <td>${escapeHtml(item.product?.product_name ?? '-')}</td>
                                 <td>${escapeHtml(statusText)}</td>
                                 <td>${escapeHtml(item.employee?.emp_name ?? '-')}</td>
+                                        <td>${escapeHtml(reason)}</td>
+
                                 <td>${actionNotPurchased}</td>
                             </tr>
                         `;
                         return;
                     }
+
 
                     normalHtml += `
                         <tr id="row-${item.cust_pro_id}">
@@ -939,6 +955,7 @@
                     $('select[name="rate_fix_open"]').val(data.rate_fix_open);
                     $('select[name="given_to"]').val(data.given_to).trigger('change');
                     $('select[name="delivery_status"]').val(data.delivery_status);
+                    $('select[name="not_purchased_reason_id"]').val(data.not_purchased_reason);
                     $('input[name="delivery_date"]').val(data.delivery_date);
 
                     toggleNotPurchasedReason();

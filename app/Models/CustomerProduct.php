@@ -51,6 +51,8 @@ class CustomerProduct extends Model
     {
         return $this->hasOne(OrderStatus::class, 'order_status_id', 'status');
     }
+    
+
 }
 
 

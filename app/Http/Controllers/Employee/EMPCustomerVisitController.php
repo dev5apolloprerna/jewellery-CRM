@@ -13,6 +13,7 @@ use App\Models\CustomerProduct;
 use App\Models\Product;
 use App\Models\Employee;
 use App\Models\CloseReason;
+use App\Models\CustOrder;
 use App\Models\BranchMaster;
 use App\Models\Vendor;
 use App\Models\Color;
@@ -50,24 +51,24 @@ class EMPCustomerVisitController extends Controller
         }
     }
     public function today()
-{
-  $emp_id = Auth::user()->emp_id;
-          
-    $branchId = auth()->user()->branch_id;
-    $today = Carbon::today();
+    {
+      $emp_id = Auth::user()->emp_id;
+              
+        $branchId = auth()->user()->branch_id;
+        $today = Carbon::today();
 
-    $query = CustomerVisit::where('iStatus', 1)
-        ->where('followup_status', 0)
-        ->whereDate('next_followup_date', $today)
-        ->where('branch_id', $branchId)->where('emp_id', $emp_id);
+        $query = CustomerVisit::where('iStatus', 1)
+            ->where('followup_status', 0)
+            ->whereDate('next_followup_date', $today)
+            ->where('branch_id', $branchId)->where('emp_id', $emp_id);
 
-       /* if ($request->filled('next_followup_date')) {
-            $query->whereDate('next_followup_date', $request->next_followup_date);
-        }*/
-        $followups = $query->paginate(env('PER_PAGE_COUNT'));
+           /* if ($request->filled('next_followup_date')) {
+                $query->whereDate('next_followup_date', $request->next_followup_date);
+            }*/
+            $followups = $query->paginate(env('PER_PAGE_COUNT'));
 
-    return view('employee.cust_followup.today_followup', compact('followups'));
-}
+        return view('employee.cust_followup.today_followup', compact('followups'));
+    }
 
    
     public function overdue()
@@ -109,7 +110,12 @@ class EMPCustomerVisitController extends Controller
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
-        return view('employee.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus','productsByCategory','notPurchasereason'));
+            $orderId = CustOrder::where(['cust_id'=>$id,'visit_id'=>null])
+                    ->latest('order_id')
+                    ->value('order_id');
+
+
+        return view('employee.new_visite.create', compact('Category','Customer','id','Products','CustProducts','employees','closereason','color','branches','vendor','purity','orderStatus','productsByCategory','notPurchasereason','orderId'));
 
     } 
      public function product($id)
@@ -169,13 +175,19 @@ class EMPCustomerVisitController extends Controller
             $closereason = CloseReason::orderBy('close_reason','asc')->get();
             $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
             $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
+            $notPurchasereason = CloseReason::where(['type'=>'purchase'])->orderBy('close_reason','asc')->get();
 
             $productsByCategory = Product::select('product_id','product_name','category_id')
                 ->orderBy('product_name','asc')
                 ->get()
                 ->groupBy('category_id');
+
+            $orderId = CustOrder::where('visit_id', $id)
+                    ->latest('order_id')
+                    ->value('order_id');
+
          
-            return view('employee.new_visite.previous_visit_view', compact('Category','Customer','id','Followups','Products','CustProducts','employees','feedback','closereason','branches','vendor','color','purity','orderStatus','productsByCategory'));
+            return view('employee.new_visite.previous_visit_view', compact('Category','Customer','id','Followups','Products','CustProducts','employees','feedback','closereason','branches','vendor','color','purity','orderStatus','productsByCategory','orderId','notPurchasereason'));
        } catch (\Exception $e) 
         {
             report($e);
