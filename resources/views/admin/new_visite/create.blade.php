@@ -24,12 +24,6 @@
   $r = \Illuminate\Support\Facades\Route::currentRouteName();
   $cid = $Customer->customer_id ?? $id;
   $latest = $Customer->latestVisit ?? null;
-
-  // Order Id for payment tab (optional)
-  $orderId = null;
-  if(isset($order) && !empty($order->order_id)){
-    $orderId = $order->order_id;
-  }
 @endphp
 
 <div class="tabs-wrap">
@@ -67,7 +61,7 @@
   @if($orderId)
     <a class="tab-link {{ $r=='orderPayment.index' ? 'active' : '' }}"
        href="{{ route('orderPayment.index', $orderId) }}">
-      <span class="tab-ic"><i class="fa fa-credit-card"></i></span> Order Payment
+      <span class="tab-ic"><i class="fa fa-credit-card"></i></span> Payment
     </a>
   @endif
 </div>
@@ -217,6 +211,7 @@
                     <th>Product</th>
                     <th>Status</th>
                     <th>Employee</th>
+                    <th>Reason</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -460,7 +455,7 @@
 
             <div class="col-lg-6 col-md-6 mt-3" id="notPurchasedReasonWrap">
               <label class="form-label">Reason (Not Purchased) <span class="text-danger">*</span></label>
-              <select name="not_purchased_reason" class="form-control" id="not_purchased_reason">
+              <select name="not_purchased_reason_id" class="form-control" id="not_purchased_reason_id">
                 <option value="">Select Reason</option>
                 @foreach($notPurchasereason as $cs)
                   <option value="{{ $cs->close_reason_id }}">{{ $cs->close_reason }}</option>
@@ -521,6 +516,9 @@
 @endsection
 
 @section('scripts')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
   // ===== Category wise products map (from controller)
   const productsByCategory = @json($productsByCategory ?? []);
@@ -595,15 +593,19 @@
 
   // ===== Not purchased reason toggle (based on selected text)
   function toggleNotPurchasedReason() {
-    const txt = ($('#delivery_status option:selected').text() || '').toLowerCase();
-    if (txt.includes('not purchased')) {
-      $('#notPurchasedReasonWrap').show();
-      $('#not_purchased_reason').prop('required', true);
-    } else {
-      $('#notPurchasedReasonWrap').hide();
-      $('#not_purchased_reason').prop('required', false).val('');
+        const txt = ($('#delivery_status option:selected').text() || '').toLowerCase();
+
+        if (txt.includes('not purchased')) {
+            $('#notPurchasedReasonWrap').show();
+            $('#not_purchased_reason_id').prop('required', true);
+        } else {
+            $('#notPurchasedReasonWrap').hide();
+            $('#not_purchased_reason_id')
+                .prop('required', false)
+                .val('');
+        }
     }
-  }
+
 
   // ===== Load product list -> 3 tables
   function loadProductList() {
@@ -700,6 +702,9 @@
           }
 
           if (isNotPurchased) {
+            const reason = item.order_details?.not_purchased_reason_text ?? '-';
+
+console.log(item.order_details);
             notPurchasedRows += `
               <tr id="row-${item.cust_pro_id}">
                 <td>${n3++}</td>
@@ -707,6 +712,7 @@
                 <td>${escapeHtml(item.product?.product_name ?? '-')}</td>
                 <td>${escapeHtml(statusText)}</td>
                 <td>${escapeHtml(item.employee?.emp_name ?? '-')}</td>
+                <td>${escapeHtml(reason)}</td>
                 <td>${actionNotPurchased}</td>
               </tr>
             `;
@@ -881,7 +887,8 @@
           $('select[name="given_to"]').val(data.given_to).trigger('change');
           $('select[name="delivery_status"]').val(data.delivery_status);
           $('input[name="delivery_date"]').val(data.delivery_date);
-
+          $('select[name="not_purchased_reason_id"]').val(data.not_purchased_reason);
+                   
           // existing image link
           if (data.refer_image_url) {
             $('#existing_refer_image_url').val(data.refer_image_url);

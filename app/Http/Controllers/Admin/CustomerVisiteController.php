@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Http\Request;
 
 use App\Models\ProductCategory;
@@ -77,10 +79,15 @@ class CustomerVisiteController extends Controller
         $branches = BranchMaster::where(['iStatus'=>1,'isDelete'=>0])->orderBy('branch_name', 'asc')->get();
         $vendor = Vendor::where(['iStatus'=>1,'isDelete'=>0,'role_id'=>3])->orderBy('contact_person', 'asc')->get();
 
+        $orderId = CustOrder::where(['cust_id'=>$id,'visit_id'=>null])
+        ->latest('order_id')
+        ->value('order_id');
+
+
         return view('admin.new_visite.create', compact(
             'Category','Customer','id','CustProducts','employees','closereason',
             'color','branches','vendor','purity','orderStatus',
-            'Products','productsByCategory','notPurchasereason'
+            'Products','productsByCategory','notPurchasereason','orderId'
         ));
     }
 
@@ -120,33 +127,75 @@ class CustomerVisiteController extends Controller
 
             return view('admin.new_visite.overdue_followup', compact('followups'));
         }
-     public function product($id)
+        public function product($id)
         {
-            /*try
-            {*/
+            try {
+
                 $user = Auth::guard('web_employees')->user();
-    
-                if ($user && $user->emp_id != null && $user->branch_id != null) 
-                {
-                    $empid = $user->emp_id;
-                    $branch_id = $user->branch_id;
-        
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->paginate(env('PER_PAGE_COUNT'));
-                    return view('employee.cust_product.index', compact('products','id'));
-                }
-                else
-                {
-                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
 
-                            return response()->json($products);
+                // ===== STEP 1: fetch products =====
+                $query = CustomerProduct::with([
+                    'customer',
+                    'product',
+                    'employee',
+                    'category',
+                    'branch',
+                    'orderDetails.OrderStatus',
+                    'orderStatus'
+                ])
+                ->where('cust_id', $id)
+                ->whereNull('visit_id')
+                ->orderBy('product_id', 'desc');
 
-                return view('admin.cust_product.index', compact('products','id'));
+                if ($user && $user->emp_id && $user->branch_id) {
+                    $products = $query->paginate(env('PER_PAGE_COUNT'));
+                } else {
+                    $products = $query->get();
                 }
-            /*} catch (\Exception $e) 
-            {
-                    return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
-            }*/
+
+                // ===== STEP 2: collect cust_pro_ids =====
+                $custProIds = collect($products instanceof \Illuminate\Pagination\AbstractPaginator
+                    ? $products->items()
+                    : $products
+                )->pluck('cust_pro_id')->filter()->values();
+
+                if ($custProIds->isNotEmpty()) {
+
+                    // ===== STEP 3: fetch not-purchased reason text =====
+                    $reasonMap = DB::table('cust_order_detail as od')
+                        ->leftJoin(
+                            'followup_close_reason as cr',
+                            'cr.close_reason_id',
+                            '=',
+                            'od.not_purchased_reason'
+                        )
+                        ->whereIn('od.cust_pro_id', $custProIds)
+                        ->pluck('cr.close_reason', 'od.cust_pro_id');
+
+                    // ===== STEP 4: inject into orderDetails =====
+                    foreach ($products as $p) {
+                        if ($p->orderDetails) {
+                            $p->orderDetails->not_purchased_reason_text =
+                                $reasonMap[$p->cust_pro_id] ?? null;
+                        }
+                    }
+                }
+
+                // ===== STEP 5: return =====
+                if ($user && $user->emp_id && $user->branch_id) {
+                    return view('employee.cust_product.index', compact('products', 'id'));
+                }
+
+                return response()->json($products);
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
         }
+
 
     public function previous_visit(Request $request,$id)
     {
@@ -183,9 +232,11 @@ class CustomerVisiteController extends Controller
                         ->latest('order_id')
                         ->value('order_id');
 
+            $notPurchasereason = CloseReason::where(['type'=>'purchase'])->orderBy('close_reason','asc')->get();
+
             return view('admin.new_visite.previous_visit_view', compact(
                 'Category','Customer','id','Followups','Products','CustProducts','employees','feedback',
-                'closereason','branches','color','vendor','purity','orderStatus','productsByCategory','orderId'
+                'closereason','branches','color','vendor','purity','orderStatus','productsByCategory','orderId','notPurchasereason'
             ));
         } catch (\Exception $e) {
             report($e);

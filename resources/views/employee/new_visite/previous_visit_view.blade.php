@@ -28,7 +28,6 @@
   $r = \Illuminate\Support\Facades\Route::currentRouteName();
   $cid = $id ?? ($Customer->customer_id ?? null);
   $latest = $Customer->latestVisit ?? null;
-  $orderId = $order->order_id ?? null;
 @endphp
 
 <div class="tabs-wrap">
@@ -49,7 +48,7 @@
   @endif
 
   @if($latest)
-    <a class="tab-link {{ $r=='EMPvisit.previous_visit' ? 'active' : '' }}" href="{{ route('EMPvisit.previous_visit', $cid) }}">
+    <a class="tab-link {{ $r=='EMPvisit.previous_visit_view' ? 'active' : '' }}" href="{{ route('EMPvisit.previous_visit_view', $cid) }}">
       <span class="tab-ic"><i class="fa fa-message"></i></span> Previous Visit
     </a>
   @endif
@@ -58,7 +57,7 @@
     <span class="tab-ic"><i class="fa fa-shopping-bag"></i></span> Orders
   </a>
 
-  @if($orderId)
+  @if(!empty($orderId))
     <a class="tab-link {{ $r=='EMPorderPayment.index' ? 'active' : '' }}" href="{{ route('EMPorderPayment.index', $orderId) }}">
       <span class="tab-ic"><i class="fa fa-credit-card"></i></span> Payment
     </a>
@@ -74,7 +73,7 @@
       <div class="d-flex justify-content-between card-header">
         <h5 class="card-title text-uppercase fw-bold text-black mb-0">Customer Previous Visite</h5>
         <div class="page-title-right">
-          @if($feedback->followup_status == 1)
+          @if(($feedback->followup_status ?? 0) == 1)
             <a href="{{ route('newVisite.create',$id) }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">Add New Visit</a>
           @endif
           <a href="{{ route('EMPcustomer.index') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">Back</a>
@@ -103,7 +102,7 @@
         <hr>
         <h6 class="card-title text-uppercase fw-bold mt-4 mb-2">Add customer view product</h6>
 
-        <form id="regForm" method="POST" action="javascript:void(0)" enctype="multipart/form-data">
+        <form id="regForm" method="POST" action="javascript:void(0)">
           @csrf
           <input type="hidden" name="visit_id" id="visit_id" value="{{ $feedback->visit_id ?? '' }}">
           <input type="hidden" name="cust_id" id="cust_id" value="{{ $Customer->customer_id }}">
@@ -127,6 +126,7 @@
                 <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="productDropBtn" data-bs-toggle="dropdown" aria-expanded="false">
                   Select product(s)
                 </button>
+
                 <div class="dropdown-menu w-100 p-2" id="productDropMenu" style="max-height:260px; overflow:auto;">
                   <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="productSelectAll">
@@ -156,6 +156,7 @@
               <button class="btn btn-primary btn-user float-right mb-3 mx-2" type="button" id="addProductBtn">Add</button>
             </div>
 
+            {{-- Product List --}}
             <div class="mt-3">
               <h6 class="card-title text-uppercase text-black fw-bold mt-4 mb-2">Product List</h6>
               <table class="table table-bordered">
@@ -173,6 +174,7 @@
               </table>
             </div>
 
+            {{-- Purchased Product List --}}
             <div class="mt-3">
               <h6 class="card-title text-uppercase text-black fw-bold mt-4 mb-2">Purchased Product List</h6>
               <table class="table table-bordered">
@@ -181,6 +183,7 @@
                     <th>Sr. No</th>
                     <th>Product Category</th>
                     <th>Product Name</th>
+                    <th>Amount</th>
                     <th>Status</th>
                     <th>Attended By</th>
                     <th>Action</th>
@@ -190,12 +193,31 @@
               </table>
             </div>
 
+            {{-- Not Purchased Product List --}}
+            <div class="mt-3">
+              <h6 class="card-title text-uppercase text-black fw-bold mt-4 mb-2">Not Purchased Product List</h6>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sr. No</th>
+                    <th>Product Category</th>
+                    <th>Product Name</th>
+                    <th>Status</th>
+                    <th>Attended By</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="notPurchasedTableBody"></tbody>
+              </table>
+            </div>
+
           </div>
         </form>
 
         <hr>
 
-        {{-- Followup (kept as-is) --}}
+        {{-- Next Followup --}}
         <div class="border p-3 mb-4">
           <h6 class="card-title text-black text-uppercase fw-bold mb-3">Next Followup</h6>
           <form action="{{ route('custFollowup.store') }}" method="POST">
@@ -257,6 +279,7 @@
                 <button type="submit" class="btn btn-success">Save</button>
                 <a href="{{ route('customer.index') }}" class="btn btn-danger">Back</a>
               </div>
+
             </div>
           </form>
         </div>
@@ -270,7 +293,7 @@
   </div>
 </div>
 
-{{-- ====================== Edit Status Modal (optional keep) ====================== --}}
+{{-- Edit Status Modal --}}
 <div class="modal fade flip" id="editModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -301,7 +324,7 @@
   </div>
 </div>
 
-{{-- ====================== Order Product Modal ====================== --}}
+{{-- Order Product Modal --}}
 <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <form id="orderForm" method="POST" enctype="multipart/form-data">
@@ -316,9 +339,15 @@
           <input type="hidden" name="product_id" id="orderProductId">
           <input type="hidden" name="cust_pro_id" id="ordercust_pro_id">
 
-          <div class="row">
-            <div class="col-md-3 mb-3"><strong>Branch:</strong> <span id="orderbranch_name"></span></div>
-            <div class="col-md-3 mb-3"><strong>Product:</strong> <span id="orderProduct"></span></div>
+           <div class="row">
+              <div class="card-header d-flex align-items-center">
+                  <div class="col-md-3 mb-3">
+                      <strong>Branch Name:</strong> <span id="orderbranch_name"></span>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                      <strong>Product Name:</strong> <span id="orderProduct"></span>
+                  </div>
+              </div>
 
             <div class="col-lg-4 col-md-6 mt-2">
               <label class="form-label">Karat <span class="text-danger">*</span></label>
@@ -376,7 +405,8 @@
               </select>
             </div>
 
-            <div class="col-lg-4 col-md-6 mt-2">
+
+            <div class="col-lg-4 col-md-6 mt-3">
               <label class="form-label">Rate Fix/Open</label>
               <select class="form-control" name="rate_fix_open">
                 <option value="">Select Rate</option>
@@ -385,12 +415,13 @@
               </select>
             </div>
 
-            <div class="col-lg-4 col-md-6 mt-2">
-              <label class="form-label">Remark</label>
-              <textarea name="remark" class="form-control" maxlength="255"></textarea>
+            <div class="col-lg-4 col-md-6 mt-3">
+                <label class="form-label">Remark</label>
+                <textarea name="remark" class="form-control" maxlength="255"></textarea>
             </div>
 
-            {{-- ✅ Vendor select with + Add New Vendor --}}
+
+            {{-- Vendor --}}
             <div class="col-lg-4 col-md-6 mt-2">
               <label class="form-label">Order Given To</label>
               <select class="form-control" name="given_to" id="given_to">
@@ -416,7 +447,7 @@
               <label class="form-label">Reason (Not Purchased)</label>
               <select class="form-control" name="not_purchased_reason_id" id="not_purchased_reason_id">
                 <option value="">Select Reason</option>
-                @foreach($closereason as $cs)
+                @foreach($notPurchasereason as $cs)
                   <option value="{{ $cs->close_reason_id }}">{{ $cs->close_reason }}</option>
                 @endforeach
               </select>
@@ -426,6 +457,7 @@
               <label class="form-label">Delivery Date</label>
               <input type="date" name="delivery_date" class="form-control">
             </div>
+
           </div>
         </div>
 
@@ -437,7 +469,7 @@
   </div>
 </div>
 
-{{-- ====================== Vendor Modal Popup ====================== --}}
+{{-- Vendor Modal --}}
 <div class="modal fade" id="vendorModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content">
@@ -494,7 +526,7 @@
 <script>
 (function () {
 
-  // ===== Products list (category-wise)
+  // Products list
   const ALL_PRODUCTS = @json(
     $Products->map(function($p){
       return [
@@ -540,81 +572,125 @@
     updateProductDropText();
   }
 
+  // prevent dropdown close
   $(document).on('click', '#productDropMenu', function(e){ e.stopPropagation(); });
 
-  // ===== Load customer products (split purchased)
+  // ===== load list (3 tables)
   window.loadProductList = function () {
-    $.ajax({
-      url: "{{ route('EMPcustProduct.index', $id) }}",
-      method: "GET",
-      success: function (products) {
+  $.ajax({
+    url: "{{ route('EMPcustProduct.index', $id) }}",
+    method: "GET",
+    success: function (products) {
 
-        let normalHtml = '';
-        let purchasedHtml = '';
-        let n1 = 1, n2 = 1;
+      let normalHtml = '';
+      let purchasedHtml = '';
+      let notPurchasedHtml = '';
 
-        products.forEach((item) => {
+      let n1 = 1, n2 = 1, n3 = 1;
 
-          const statusText = (item.order_details?.order_status?.status ?? item.status ?? '-');
-          const statusLower = String(statusText).trim().toLowerCase();
-          const isOrderPlaced = !!item.order_details;
-          const isPurchased = (isOrderPlaced && statusLower === 'purchased');
+      products.forEach((item) => {
 
-          // ✅ If purchased -> ONLY delete button
-          let actionButtons = `
-            <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
-              <i class="fa fa-trash"></i>
-            </button>
-          `;
+        const statusText = (item.order_details?.order_status?.status ?? item.status ?? '-');
+        const statusLower = String(statusText).trim().toLowerCase();
+        const isOrderPlaced = !!item.order_details;
 
-          // ✅ Not purchased: allow edit + order
-          if (!isPurchased) {
+        const isPurchased = (isOrderPlaced && statusLower === 'purchased');
+        const isNotPurchased = (isOrderPlaced && statusLower.includes('not purchased'));
 
-            if (isOrderPlaced) {
-              actionButtons += `
-                <button type="button" class="btn btn-success btn-sm editStatus"
-                  data-id="${item.cust_pro_id}"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editModal">
-                  <i class="fa fa-edit"></i>
-                </button>`;
-            }
 
+        const amount = (item.order_details?.amount ?? 0);
+
+        // ✅ reason name from close_reason table (via relation)
+        const notPurchasedReasonText =
+          item.order_details?.notPurchasedReason?.close_reason ?? '-';
+
+        // action buttons
+        let actionButtons = `
+          <button class="btn btn-danger btn-sm deleteProduct" data-id="${item.cust_pro_id}">
+            <i class="fa fa-trash"></i>
+          </button>
+        `;
+
+        if (!isPurchased && !isNotPurchased) {
+
+          if (isOrderPlaced) {
             actionButtons += `
-              <button type="button" class="btn btn-success btn-sm orderProduct"
-                data-id="${item.cust_pro_id}"
-                data-name="${item.product?.product_name ?? ''}"
-                data-product="${item.product_id}"
-                data-branch="${item.branch_id}"
-                data-refno="${item.product?.product_tag ?? ''}"
-                data-branchname="${item.branch?.branch_name ?? ''}"
-                data-bs-toggle="modal"
-                data-bs-target="#orderModal">
-                <i class="fa fa-shopping-cart" title="Order Product"></i>
+              <button type="button" class="btn btn-success btn-sm editStatus"
+                data-id="${item.cust_pro_id}" data-bs-toggle="modal" data-bs-target="#editModal">
+                <i class="fa fa-edit"></i>
               </button>`;
           }
 
-          const row = `
-            <tr id="row-${item.cust_pro_id}">
-              <td>__SR__</td>
-              <td>${item.category?.category_name ?? '-'}</td>
-              <td>${item.product?.product_name ?? '-'}</td>
-              <td>${statusText}</td>
-              <td>${item.employee?.emp_name ?? '-'}</td>
-              <td>${actionButtons}</td>
-            </tr>`;
+          actionButtons += `
+            <button type="button" class="btn btn-success btn-sm orderProduct"
+              data-id="${item.cust_pro_id}"
+              data-name="${item.product?.product_name ?? ''}"
+              data-product="${item.product_id}"
+              data-branch="${item.branch_id}"
+              data-refno="${item.product?.product_tag ?? ''}"
+              data-branchname="${item.branch?.branch_name ?? ''}"
+              data-bs-toggle="modal" data-bs-target="#orderModal">
+              <i class="fa fa-shopping-cart" title="Order Product"></i>
+            </button>`;
+        }
 
-          if (isPurchased) purchasedHtml += row.replace('__SR__', n2++);
-          else normalHtml += row.replace('__SR__', n1++);
-        });
+        // Normal row (6 columns)
+        const rowNormal = `
+          <tr id="row-${item.cust_pro_id}">
+            <td>__SR__</td>
+            <td>${item.category?.category_name ?? '-'}</td>
+            <td>${item.product?.product_name ?? '-'}</td>
+            <td>${statusText}</td>
+            <td>${item.employee?.emp_name ?? '-'}</td>
+            <td>${actionButtons}</td>
+          </tr>
+        `;
 
-        $('#productTableBody').html(normalHtml || `<tr><td colspan="6" class="text-center text-muted">No products</td></tr>`);
-        $('#purchasedTableBody').html(purchasedHtml || `<tr><td colspan="6" class="text-center text-muted">No purchased products</td></tr>`);
-      }
-    });
-  };
+        // Purchased row (7 columns)
+        const rowPurchased = `
+          <tr id="row-${item.cust_pro_id}">
+            <td>__SR__</td>
+            <td>${item.category?.category_name ?? '-'}</td>
+            <td>${item.product?.product_name ?? '-'}</td>
+            <td>${amount}</td>
+            <td>${statusText}</td>
+            <td>${item.employee?.emp_name ?? '-'}</td>
+            <td>${actionButtons}</td>
+          </tr>
+        `;
+        const reasonText = item.order_details?.not_purchased_reason?.close_reason ?? '-';
+console.log(reasonText);
+        // Not Purchased row (7 columns + reason)
+        const rowNotPurchased = `
+          <tr id="row-${item.cust_pro_id}">
+            <td>__SR__</td>
+            <td>${item.category?.category_name ?? '-'}</td>
+            <td>${item.product?.product_name ?? '-'}</td>
+            <td>${statusText}</td>
+            <td>${item.employee?.emp_name ?? '-'}</td>
+            <td>${reasonText}</td>
+            <td>${actionButtons}</td>
+          </tr>
+        `;
 
-  // ===== Select2 Vendor (inside modal)
+
+        if (isPurchased) purchasedHtml += rowPurchased.replace('__SR__', n2++);
+        else if (isNotPurchased) notPurchasedHtml += rowNotPurchased.replace('__SR__', n3++);
+        else normalHtml += rowNormal.replace('__SR__', n1++);
+      });
+
+      $('#productTableBody').html(normalHtml || `<tr><td colspan="6" class="text-center text-muted">No products</td></tr>`);
+      $('#purchasedTableBody').html(purchasedHtml || `<tr><td colspan="7" class="text-center text-muted">No purchased products</td></tr>`);
+     $('#notPurchasedTableBody').html(
+        notPurchasedHtml || `<tr><td colspan="7" class="text-center text-muted">No not-purchased products</td></tr>`
+      );
+
+    }
+  });
+};
+
+
+  // ===== Vendor select2
   function initVendorSelect2() {
     if ($('#given_to').hasClass('select2-hidden-accessible')) {
       $('#given_to').select2('destroy');
@@ -634,6 +710,7 @@
     });
   }
 
+  // ===== ready
   $(document).ready(function () {
     renderProductsByCategory($('#category_id').val());
     loadProductList();
@@ -689,7 +766,7 @@
     });
   });
 
-  // ===== Delete
+  // delete
   $(document).on('click', '.deleteProduct', function (event) {
     event.preventDefault();
     const id = $(this).data('id');
@@ -700,23 +777,22 @@
       method: 'POST',
       data: { _token: '{{ csrf_token() }}' },
       success: function (response) {
-        if (response.success) $(`#row-${id}`).remove();
+        if (response.success) loadProductList();
         else alert('Failed to delete the product.');
       },
-      error: function () {
-        alert('An error occurred while deleting the product.');
-      }
+      error: function () { alert('An error occurred while deleting the product.'); }
     });
   });
 
-  // ===== Edit status modal set id
+  // edit status
   $(document).on('click', '.editStatus', function () {
     $('#statusproduct_id').val($(this).data('id'));
   });
 
-  // ===== Open Order modal + load details
+  // open order modal
   $(document).on('click', '.orderProduct', function () {
     const custProId = $(this).data('id');
+
     $('#ordercust_pro_id').val(custProId);
     $('#orderProductId').val($(this).data('product'));
     $('#orderProduct').text($(this).data('name') || '');
@@ -729,7 +805,6 @@
     $('#existing_refer_image_url').val('');
     $('#existingRefImageLink').hide().attr('href', '#');
 
-    // init select2 every open
     initVendorSelect2();
 
     $.ajax({
@@ -737,7 +812,7 @@
       type: 'GET',
       success: function (response) {
         if (response.success && response.data) {
-          let data = response.data;
+          const data = response.data;
 
           $('select[name="karat"]').val(data.karat);
           $('select[name="color_id"]').val(data.color_id);
@@ -745,9 +820,9 @@
           $('input[name="size"]').val(data.size);
           $('input[name="refer_tag_number"]').val(data.refer_tag_number);
           $('input[name="amount"]').val(data.amount);
-          $('select[name="rate_fix_open"]').val(data.rate_fix_open);
           $('textarea[name="remark"]').val(data.remark);
           $('select[name="rate_type"]').val(data.rate_type);
+
           $('#given_to').val(data.given_to).trigger('change');
           $('#delivery_status').val(data.delivery_status);
           $('input[name="delivery_date"]').val(data.delivery_date);
@@ -764,14 +839,14 @@
     });
   });
 
-  // ===== Delivery status toggle
+  // delivery status toggle
   $(document).on('change', '#delivery_status', function () {
     const txt = ($('#delivery_status option:selected').text() || '').toLowerCase();
     if (txt.includes('not purchased')) $('#notPurchasedReasonWrap').show();
     else { $('#notPurchasedReasonWrap').hide(); $('#not_purchased_reason_id').val(''); }
   });
 
-  // ===== Select2 add vendor option -> open vendor modal
+  // select2 add vendor -> open modal
   $(document).on('select2:select', '#given_to', function (e) {
     if (e.params.data.id === '__add_vendor__') {
       $('#given_to').val('').trigger('change');
@@ -782,7 +857,7 @@
     }
   });
 
-  // ===== Save vendor AJAX
+  // save vendor
   $(document).on('click', '#saveVendorBtn', function () {
     $('#vm_err_contact').text('');
     $('#vm_success').hide().text('');
@@ -803,8 +878,6 @@
         if (!res || !res.success) { alert(res?.message || 'Failed to add vendor'); return; }
 
         const v = res.data;
-
-        // add before add_vendor option (if not exists)
         if ($('#given_to option[value="' + v.vendor_id + '"]').length === 0) {
           $('#given_to option[value="__add_vendor__"]').before(
             `<option value="${v.vendor_id}">${v.contact_person}</option>`
@@ -827,7 +900,7 @@
     });
   });
 
-  // ===== Submit order
+  // submit order
   $('#orderForm').on('submit', function (e) {
     e.preventDefault();
     if (!confirm('Are you sure you want to order this product?')) return;
@@ -848,9 +921,7 @@
           alert('Error: ' + response.message);
         }
       },
-      error: function () {
-        alert('An unexpected error occurred.');
-      }
+      error: function () { alert('An unexpected error occurred.'); }
     });
   });
 

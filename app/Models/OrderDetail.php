@@ -20,4 +20,8 @@ class OrderDetail extends Model
         'amount',
         'isPayment',
     ];
+
+   
+
+
 }

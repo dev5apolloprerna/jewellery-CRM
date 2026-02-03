@@ -111,7 +111,7 @@ class CustomerFollowupController extends Controller
 
         $request->validate([
             'cust_id' => 'required',
-            'remark' => 'required',
+            'remark' => 'nullable',
             'visit_date' => 'required',
             'emp_id' => 'required',
             'next_followup_date' => 'required_if:followup_status,0',
