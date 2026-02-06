@@ -97,11 +97,45 @@
                                 <div class="col-lg-5">
                                     <div class="d-flex justify-content-between card-header">
                                         <h5 class="card-title mb-0">Product List</h5>
-                                        <div class="modal-body">
-
-                                        
-                                        </div>
+                                       
                                     </div>
+                                    <div class="card-body">
+
+                                    {{-- ✅ Use GET for search --}}
+                                    <form method="GET" action="{{ route('product.index') }}" class="mb-3">
+                                        <div class="row align-items-end">
+
+                                            <div class="col-md-7">
+                                                <label class="form-label" style="font-weight:600;">Search By Product Name</label>
+                                                <input
+                                                    type="text"
+                                                    name="search"
+                                                    class="form-control"
+                                                    placeholder="Enter Product Name / Tag"
+                                                    value="{{ request('search') }}"
+                                                    style="height:40px;"
+                                                />
+                                            </div>
+
+                                            <div class="col-md-5">
+                                                <div class="d-flex gap-2" style="margin-top:28px;">
+                                                    <button type="submit" class="btn btn-primary" style="height:40px; min-width:110px;">
+                                                        Search
+                                                    </button>
+
+                                                    {{-- ✅ Reset should be link, not submit --}}
+                                                    <a href="{{ route('product.index') }}" class="btn btn-primary"
+                                                       style="height:40px; min-width:110px; display:flex; align-items:center; justify-content:center;">
+                                                        Reset
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </form>
+
+                                </div>
+
                                     
                                 <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
                                     <thead>

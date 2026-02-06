@@ -15,9 +15,24 @@ class ProductController extends Controller
     {
         try
         {
-            $Product = Product::with('category')->orderBy('product_id', 'desc')->paginate(env('PER_PAGE_COUNT'));
+            
+            $search = trim((string) $request->get('search', ''));
+
+            $Product = Product::with('category')
+                ->when($search !== '', function ($q) use ($search) {
+                    $q->where(function ($w) use ($search) {
+                        $w->where('product_name', 'like', "%{$search}%")
+                          ->orWhere('product_tag',  'like', "%{$search}%");
+                    });
+                })
+                ->orderBy('product_id', 'desc')
+                ->paginate(env('PER_PAGE_COUNT'));
+
+            // Optional: keep query string in pagination links
+            $Product->appends(['search' => $search]);
+
             $category = ProductCategory::orderBy('category_name', 'desc')->where(['iStatus'=>1,'isDelete'=>0])->get();
-            return view('admin.product_master.index', compact('Product','category'));
+            return view('admin.product_master.index', compact('Product','category','search'));
         } catch (\Exception $e) 
         {
             report($e);
