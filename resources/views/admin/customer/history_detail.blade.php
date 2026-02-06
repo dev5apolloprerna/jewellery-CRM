@@ -86,7 +86,7 @@
 
 @php
     $r = \Illuminate\Support\Facades\Route::currentRouteName();
-    $cid = $customer->customer_id; // adjust if different
+    $cid = $customer->customer_id; // adjust if different 
     $latest = $customer->latestVisit ?? null;
 
     $orderId = null;

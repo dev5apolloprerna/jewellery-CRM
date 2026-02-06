@@ -2,6 +2,8 @@
 use App\Http\Controllers\Front\FrontController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\GlobalSearchController;
+
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\CastMasterController;
@@ -51,6 +53,11 @@ Route::get('/login', function () {
 
 
 Auth::routes(['register' => false]);
+
+
+Route::any('/global-search/suggest', [GlobalSearchController::class, 'suggest'])
+    ->name('global.search.suggest');
+
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
@@ -187,7 +194,7 @@ Route::prefix('admin')->name('productCategory.')->middleware('auth')->group(func
 
 //Product  Master
 Route::prefix('admin')->name('product.')->middleware('auth')->group(function () {
-    Route::get('/product/index', [ProductController::class, 'index'])->name('index');
+    Route::any('/product/index', [ProductController::class, 'index'])->name('index');
     Route::post('/product/store', [ProductController::class, 'store'])->name('store');
     Route::get('/product/edit/{id?}', [ProductController::class, 'editview'])->name('edit');
     Route::post('/product/update/{id?}', [ProductController::class, 'update'])->name('update');
