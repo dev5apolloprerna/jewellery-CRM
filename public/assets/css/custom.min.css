@@ -2,3 +2,7 @@
 /*# sourceMappingURL=custom.min.css.map */
 [data-layout=horizontal] .menu-dropdown{background:#6a3636!important;}
 .text-primary{color:#6a3636!important;}
+.table-scroll{
+            width:100%;
+            overflow-x:scroll !important;
+        }

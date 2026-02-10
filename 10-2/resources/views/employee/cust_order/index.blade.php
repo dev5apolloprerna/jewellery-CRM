@@ -53,6 +53,7 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
+                                <div class="table-scroll">
                                 <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
                                     <thead>
                                         <tr>
@@ -152,6 +153,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                                </div>
                                 <div class="d-flex justify-content-center mt-3">
                                     {{ $orders->appends(request()->except('page'))->links() }}
                                 </div>

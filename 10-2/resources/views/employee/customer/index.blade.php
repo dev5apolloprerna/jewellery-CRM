@@ -3,6 +3,13 @@
 @section('title', 'Customer List')
 
 @section('content')
+    /*<style>*/
+    /*    .table-scroll{*/
+    /*        width:100%;*/
+    /*        overflow-x:scroll;*/
+    /*    }*/
+    /*</style>*/
+
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -50,7 +57,8 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-                                <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
+                                <div class="table-scroll">
+                                <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%;">
                                     <thead>
                                         <tr>
                                             <th>No</th>
@@ -116,6 +124,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                                </div>
                                 <div class="d-flex justify-content-center mt-3">
                                     {{ $customers->appends(request()->except('page'))->links() }}
                                 </div>

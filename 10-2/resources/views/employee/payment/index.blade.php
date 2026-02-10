@@ -16,7 +16,7 @@
                         <div class="d-flex justify-content-between card-header">
                             <h5 class="card-title text-uppercase fw-bold text-black mb-0">Customer Order Detail</h5>
                             <a href="{{ route('EMPcustOrder.index') }}"
-                                    class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                                    class=" d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                                     Back
                                 </a>
                         </div>
@@ -43,6 +43,7 @@
                           
                                     <div class="mt-3">
                                         <h6 class="text-uppercase text-black fw-bold mt-4 mb-2">Product List</h6>
+                                        <div class="table-scroll">
                                             <table class="table table-bordered" >
                                                 <thead>
                                                     <tr>
@@ -129,6 +130,7 @@
                                                         @endif
                                                 </tbody>
                                             </table>
+                                            </div>
                                     </div>
                                     <hr>
                                 <div class="card-body">
@@ -180,6 +182,7 @@
 
                                     {{-- Followup History --}}
                             <h6 class="text-uppercase fw-bold mt-4 mb-2">Payment Detail</h6>
+                            <div class="table-scroll">
                             <table class="table table-bordered">
                                 <thead>
                                     <th>No</th>
@@ -221,7 +224,7 @@
                                     @endif
                                 </tbody>
                             </table>
-
+                            </div>
                         </div>
                     </div>
                 </div>

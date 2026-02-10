@@ -14,11 +14,11 @@
 
                 <div class="row">
                     <div class="col-12">
-                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                        <div class="page-title-box d-flex d-sm-flex align-items-center justify-content-between">
                             <h4 class="mb-sm-0">Add Customer</h4>
                             <div class="page-title-right">
                                 <a href="{{ route('EMPcustomer.index') }}"
-                                    class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                                    class=" d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                                     Back
                                 </a>
                             </div>
