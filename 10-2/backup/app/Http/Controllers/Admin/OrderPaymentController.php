@@ -23,7 +23,7 @@ class OrderPaymentController extends Controller
 {
     public function index(Request $request,$id)
     {
-        // try{ OShreeji@123
+        // try{
             $user = Auth::guard('web_employees')->user();
 
             if ($user && $user->emp_id != null && $user->branch_id != null) 
