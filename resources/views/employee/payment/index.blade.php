@@ -2,103 +2,9 @@
 @section('title', 'Customer Order Detail')
 @section('content')
 
-<style>
-    .tabs-wrap{
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        margin-bottom:15px
-    }
-    .tab-link{
-        text-decoration:none;
-        border:1px solid #e5e7eb;
-        background:#fff;
-        padding:10px 14px;
-        border-radius:12px;
-        font-weight:600;
-        color:#374151;
-        display:flex;
-        align-items:center;
-        gap:10px;
-        box-shadow:0 6px 18px rgba(0,0,0,.04);
-        transition:.15s;
-    }
-    .tab-link:hover{ transform:translateY(-1px) }
-    .tab-link.active{
-        background:#5c2323;
-        border-color:#5c2323;
-        color:#fff;
-    }
-    .tab-ic{
-        width:30px;
-        height:30px;
-        border-radius:10px;
-        display:grid;
-        place-items:center;
-        background:#f3f4f6;
-        color:#111827;
-    }
-    .tab-link.active .tab-ic{
-        background:rgba(255,255,255,.2);
-        color:#fff;
-    }
-</style>
-
 <div class="main-content">
     <div class="page-content">
         <div class="container-fluid">
-
-            @php
-                $route = \Illuminate\Support\Facades\Route::currentRouteName();
-                $cid   = $id; // customer_id passed from controller
-            @endphp
-
-            {{-- ✅ Tabs --}}
-            <div class="tabs-wrap">
-                {{-- History --}}
-                <a href="{{ route('EMPcustomer.history', $cid) }}"
-                   class="tab-link {{ $route=='EMPcustomer.history' ? 'active' : '' }}">
-                    <span class="tab-ic"><i class="fa fa-eye"></i></span>
-                    History
-                </a>
-
-                {{-- New Visit --}}
-                <a href="{{ route('EMPvisit.create', $cid) }}"
-                   class="tab-link {{ $route=='EMPvisit.create' ? 'active' : '' }}">
-                    <span class="tab-ic"><i class="fa fa-plus-circle"></i></span>
-                    New Visit
-                </a>
-
-                {{-- Previous Visit (ACTIVE HERE) --}}
-                <a href="{{ route('EMPvisit.previous_visit', $cid) }}"
-                   class="tab-link {{ in_array($route, ['EMPvisit.previous_visit','EMPvisit.previous_visit_view','EMPvisit.previous_visit_view']) ? 'active' : '' }}">
-                    <span class="tab-ic"><i class="fa fa-history"></i></span>
-                    Previous Visit
-                </a>
-
-                {{-- Orders --}}
-                <a href="{{ route('EMPcustOrder.index') }}"
-                   class="tab-link {{ $route=='EMPcustOrder.index' ? 'active' : '' }}">
-                    <span class="tab-ic"><i class="fa fa-shopping-bag"></i></span>
-                    Orders
-                </a>
-
-                 @if($orderId)
-                    <a class="tab-link {{ $route=='EMPorderPayment.index' ? 'active' : '' }}"
-                       title="Payment Details"
-                       href="{{ route('EMPorderPayment.index', $orderId) }}">
-                        <span class="tab-ic"><i class="fa fa-credit-card"></i></span>
-                        Payment
-                    </a>
-                @endif
-
-                {{-- Back to Customer List --}}
-                <a href="{{ route('EMPcustomer.index') }}" class="tab-link">
-                    <span class="tab-ic"><i class="fa fa-arrow-left"></i></span>
-                    Back
-                </a>
-            </div>
-            
 
             {{-- Alert Messages --}}
             @include('common.alert')
@@ -110,7 +16,7 @@
                         <div class="d-flex justify-content-between card-header">
                             <h5 class="card-title text-uppercase fw-bold text-black mb-0">Customer Order Detail</h5>
                             <a href="{{ route('EMPcustOrder.index') }}"
-                                    class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                                    class=" d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                                     Back
                                 </a>
                         </div>
@@ -137,6 +43,7 @@
                           
                                     <div class="mt-3">
                                         <h6 class="text-uppercase text-black fw-bold mt-4 mb-2">Product List</h6>
+                                        <div class="table-scroll">
                                             <table class="table table-bordered" >
                                                 <thead>
                                                     <tr>
@@ -223,6 +130,7 @@
                                                         @endif
                                                 </tbody>
                                             </table>
+                                            </div>
                                     </div>
                                     <hr>
                                 <div class="card-body">
@@ -274,6 +182,7 @@
 
                                     {{-- Followup History --}}
                             <h6 class="text-uppercase fw-bold mt-4 mb-2">Payment Detail</h6>
+                            <div class="table-scroll">
                             <table class="table table-bordered">
                                 <thead>
                                     <th>No</th>
@@ -315,7 +224,7 @@
                                     @endif
                                 </tbody>
                             </table>
-
+                            </div>
                         </div>
                     </div>
                 </div>

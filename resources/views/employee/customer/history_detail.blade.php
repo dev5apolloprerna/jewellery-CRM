@@ -40,23 +40,13 @@
     .box-title { font-weight:700;color:#3b3b3b;font-size:18px; display:flex; align-items:center; gap:10px; }
     .box-body { padding:18px; }
     .muted { color:#6b7280;font-size: .92rem; }
-    .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{display:grid;gap:12px}
-        .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-        .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-        .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-        .grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}
-        .grid-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+    .grid-2,.grid-3,.grid-4{display:grid;gap:12px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media (max-width:992px){ .grid-3,.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    @media (max-width:576px){ .grid-2,.grid-3,.grid-4{grid-template-columns:1fr} }
 
-
-        @media (max-width:1200px){
-        .grid-5,.grid-6{grid-template-columns:repeat(3,minmax(0,1fr))}
-        }
-        @media (max-width:992px){
-        .grid-5,.grid-6{grid-template-columns:repeat(2,minmax(0,1fr))}
-        }
-        @media (max-width:576px){
-        .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:1fr}
-        }
     .pill { background:#f3f4f6;border-radius:999px;padding:6px 10px;font-size:.82rem;color:#374151; }
     .badge { border-radius:8px;padding:6px 10px;font-size:.78rem; }
     .badge-green { background:#e8f8ef;color:#0e7a49; }
@@ -72,6 +62,7 @@
     .kv small { color:#6b7280; }
     .money { text-align:right; white-space:nowrap; }
 </style>
+
 @php
     $fmt = fn($n) => number_format((float)($n ?? 0), 2);
 @endphp
@@ -105,14 +96,6 @@
 
 <div class="tabs-wrap">
     
-    {{-- Customer History (EMPcustomer.history) --}}
-    <a class="tab-link {{ $r=='EMPcustomer.history' ? 'active' : '' }}"
-       title="Customer Order"
-       href="{{ route('EMPcustomer.history', $cid) }}">
-        <span class="tab-ic"><i class="fa fa-eye"></i></span>
-        History
-    </a>
-    
     {{-- New Visit (EMPvisit.create) --}}
     @if($latest)
         @if(($latest->followup_status ?? 0) == 1)
@@ -142,7 +125,13 @@
         </a>
     @endif
 
-    
+    {{-- Customer History (EMPcustomer.history) --}}
+    <a class="tab-link {{ $r=='EMPcustomer.history' ? 'active' : '' }}"
+       title="Customer Order"
+       href="{{ route('EMPcustomer.history', $cid) }}">
+        <span class="tab-ic"><i class="fa fa-eye"></i></span>
+        History
+    </a>
 
     {{-- Orders list (EMPcustOrder.index) --}}
     <a class="tab-link {{ $r=='EMPcustOrder.index' ? 'active' : '' }}"
@@ -181,7 +170,7 @@
 
     <div class="box-body">
         {{-- Row 1: core contact --}}
-        <div class="grid-6">
+        <div class="grid-4">
             <div class="kv">
                 <small>Name</small>
                 <div>{{ $customer->customer_name ?? '-' }}</div>
@@ -210,6 +199,10 @@
                 <small>City</small>
                 <div>{{ $customer->city ?? '-' }}</div>
             </div>
+        </div>
+
+        {{-- Row 2: profile & location --}}
+        <div class="grid-4" style="margin-top:12px">
             <div class="kv">
                 <small>Cast</small>
                 <div>{{ data_get($customer, 'cast.cast', '-') }}</div>
@@ -218,36 +211,9 @@
                 <small>Branch</small>
                 <div>{{ data_get($customer, 'branch.branch_name', '-') }}</div>
             </div>
-        </div>
-
-        {{-- Row 2: profile & location --}}
-        <div class="grid-6" style="margin-top:12px">
-            
             <div class="kv">
                 <small>Address</small>
                 <div>{{ $customer->address ?? '-' }}</div>
-            </div>
-            <div class="kv">
-                <small>Customer Type</small>
-                <div>{{ $customer->custCat->cust_cat_name ?? '-' }}</div>
-            </div>
-            <div class="kv">
-                <small>Rate</small>
-                <div>{{ $customer->rate ?? '-' }}</div>
-            </div>
-            <div class="kv">
-                <small>Beverage</small>
-                <div>{{ $customer->beverage ?? '-' }}</div>
-                <small>Suger</small>
-                <div>{{ $customer->suger ?? '-' }}</div>
-            </div>
-            <div class="kv">
-                <small>Birthday</small>
-                <div>{{ date('d-m-Y',strtotime($customer->birthdate)) ?? '-' }}</div>
-            </div>
-            <div class="kv">
-                <small>Anniversary </small>
-                <div>{{ date('d-m-Y',strtotime($customer->anniversary_date))  ?? '-' }}</div>
             </div>
         </div>
 
@@ -323,7 +289,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['viewProducts'] as $vp)
+                                    @forelse(($block['viewProducts'] ?? []) as $vp)
+                                    
                                     <tr>
                                         <td>{{ $vp->category->category_name ?? '' }}</td>
                                         <td>{{ $vp->product->product_name ?? '' }}</td>
@@ -356,7 +323,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['orderedProducts'] as $pp)
+                                @forelse(($block['orderedProducts'] ?? []) as $pp)
+
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>
@@ -400,7 +368,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['purchasedProducts'] as $pp)
+                                @forelse(($block['purchasedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>
@@ -440,7 +408,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['NotpurchasedProducts'] as $pp)
+                                @forelse(($block['NotpurchasedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>

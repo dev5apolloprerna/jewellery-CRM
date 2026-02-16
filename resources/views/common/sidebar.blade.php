@@ -126,9 +126,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                         <span data-key="t-dashboards">Customer&nbsp;Master</span>
                     </a>
                 </li> 
-
-
-               <!--  <li class="nav-item">
+                <!--<li class="nav-item">
                     <a class="nav-link menu-link @if (request()->routeIs('custOrder.index')) {{ 'active' }} @endif"
                         href="{{ route('custOrder.index') }}">
                         <i class="
@@ -143,7 +141,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                         fas fa-shopping-bag"></i>
                         <span data-key="t-dashboards">Purchased&nbsp;Product</span>
                     </a>
-                </li> -->
+                </li>-->
               <li class="nav-item">
                     <a class="nav-link" href="#sidebarMore" data-bs-toggle="collapse" role="button"
                         aria-expanded="true" aria-controls="sidebarMore">
@@ -228,7 +226,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                         <span data-key="t-dashboards">Customer Master</span>
                     </a>
                 </li>
-                <!-- <li class="nav-item">
+               <!-- <li class="nav-item">
                     <a class="nav-link menu-link @if (request()->routeIs('EMPcustOrder.index')) {{ 'active' }} @endif"
                         href="{{ route('EMPcustOrder.index') }}">
                         <i class="
@@ -243,7 +241,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                         fas fa-shopping-bag"></i>
                         <span data-key="t-dashboards">Purchased Product</span>
                     </a>
-                </li> -->
+                </li>-->
                 @endif
             </ul>
         </div>

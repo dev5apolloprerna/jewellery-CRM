@@ -28,17 +28,14 @@ class CloseReasonController extends Controller
     {
           $request->validate([
             'close_reason' => 'required|unique:followup_close_reason,close_reason',
-            'type' => 'required',
         ], [
             'close_reason.required' => 'Close Reason is required.',
             'close_reason.unique' => 'This Close Reason already exists.',
-            'type.required' => 'This Close Reason Type is required.',
         ]);
         
         try{
                 $cl=new CloseReason();
                 $cl->close_reason=$request->close_reason;
-                $cl->type=$request->type;
                 $cl->save();
 
                 return redirect()->route('closeReason.index')->with('success', 'Close Reason Created Successfully.');
@@ -79,7 +76,6 @@ class CloseReasonController extends Controller
             ->where(['close_reason_id' => $request->close_reason_id])
             ->update([
                 'close_reason' => $request->close_reason ?? 0,
-                'type' => $request->type ?? 0,
             ]);
 
 

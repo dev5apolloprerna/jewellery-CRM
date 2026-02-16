@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Product;
-use App\Models\Category;
 use App\Models\Productphotos;
 use App\Models\Wishlist;
 use App\Models\Customer;
@@ -27,7 +26,6 @@ class ProductController extends Controller
     
   public function index(Request $request)
   {
-        $Category=Category::where(['iStatus'=>1,'isDelete'=>0])->get();
         $Product = Product::select(
             'product.productId',
             'product.categoryId',

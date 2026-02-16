@@ -11,7 +11,22 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+   /* public function index(Request $request)
+    {
+        try
+        {
+            $Product = Product::with('category')->orderBy('product_id', 'desc')->paginate(env('PER_PAGE_COUNT'));
+            $category = ProductCategory::orderBy('category_name', 'desc')->where(['iStatus'=>1,'isDelete'=>0])->get();
+            return view('admin.product_master.index', compact('Product','category'));
+        } catch (\Exception $e) 
+        {
+            report($e);
+            return false;
+        }
+    }
+*/
+
+public function index(Request $request)
     {
         try
         {
@@ -39,7 +54,6 @@ class ProductController extends Controller
             return false;
         }
     }
-
     public function store(Request $request)
     {
          $request->validate([

@@ -32,7 +32,7 @@ class CustomerOrderController extends Controller
             {
                 $empid = $user->emp_id;
                 $branch_id = $user->branch_id;
-
+        
                 //$orders = CustOrder::with(['branch','customer','customerVisit','orderDetails.employee'])->where(['emp_id'=>$empid])->whereNotNull('visit_id')->orderBy('order_id','desc')->paginate(env('PER_PAGE_COUNT'));
                 $orders = CustOrder::with([
                             'branch',
@@ -61,7 +61,7 @@ class CustomerOrderController extends Controller
 
                 $orderStatus = OrderStatus::all();
 
-                return view('employee.cust_order.index', compact('orders','orderStatus','empid'));
+                return view('employee.cust_order.index', compact('orders','orderStatus'));
 
             }else{
                 $orders = CustOrder::with([

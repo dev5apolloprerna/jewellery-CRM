@@ -2,9 +2,10 @@
 use App\Http\Controllers\Front\FrontController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\GlobalSearchController;
 
-use App\Http\Controllers\Auth\LoginController;
+
 use App\Http\Controllers\Admin\CustomerCategoryController;
 use App\Http\Controllers\Admin\CastMasterController;
 use App\Http\Controllers\Admin\ProductCategoryController;
@@ -54,10 +55,8 @@ Route::get('/login', function () {
 
 Auth::routes(['register' => false]);
 
-
 Route::any('/global-search/suggest', [GlobalSearchController::class, 'suggest'])
     ->name('global.search.suggest');
-
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
@@ -245,9 +244,9 @@ Route::post('admin/updatepassword/{id?}', [EmployeeMasterController::class, 'upd
 
 Route::resource('admin/vendorMaster', VendorMasterController::class);
 Route::post('admin/vendorMaster/delete', [VendorMasterController::class, 'destroy'])->name('vendorMaster.destroy');
-
 Route::post('/vendor-master/store-ajax', [VendorMasterController::class, 'storeAjax'])
     ->name('vendor.storeAjax');
+
 
 //Customer master
 

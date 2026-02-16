@@ -30,6 +30,7 @@
                             <div class="row">
                                   <div class="col-xl-3 col-md-6">
                                     <!-- card -->
+                                    <a href="{{ route('EMPvisit.today') }}">
                                     <div class="card card-animate bg-primary">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center">
@@ -44,9 +45,9 @@
                                                         <span class="counter-value"
                                                             data-target="{{ $todayCount }}">0</span>
                                                     </h4>
-                                                    <a href="{{ route('EMPvisit.today') }}"
+                                                    <p
                                                         class="text-decoration-underline text-white-50">View
-                                                        Today Followup</a>
+                                                        Today Followup</p>
                                                 </div>
                                                 <div class="avatar-sm flex-shrink-0">
                                                     <span class="avatar-title bg-soft-light rounded fs-3">
@@ -55,11 +56,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div></a>
                                 </div>
-
+    
                                 <div class="col-xl-3 col-md-6">
                                     <!-- card -->
+                                    <a href="{{ route('EMPvisit.overdue') }}">
                                     <div class="card card-animate bg-success">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center">
@@ -74,9 +76,9 @@
                                                         <span class="counter-value"
                                                             data-target="{{ $overdueCount }}">0</span>
                                                     </h4>
-                                                    <a href="{{ route('EMPvisit.overdue') }}"
+                                                    <p
                                                         class="text-decoration-underline text-white-50">View
-                                                        Overdue Followup</a>
+                                                        Overdue Followup</p>
                                                 </div>
                                                 <div class="avatar-sm flex-shrink-0">
                                                     <span class="avatar-title bg-soft-light rounded fs-3">
@@ -85,12 +87,13 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div></a>
                                 </div>
                                 
                                 
                                 <div class="col-xl-3 col-md-6">
                                     <!-- card -->
+                                    <a href="{{ route('EMPcustOrder.index', ['date' => \Carbon\Carbon::today()->toDateString()]) }}">
                                     <div class="card card-animate bg-secondary">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center">
@@ -105,9 +108,9 @@
                                                         <span class="counter-value"
                                                             data-target="{{ $PaymentReminder }}">0</span>
                                                     </h4>
-                                                    <a href="{{ route('EMPcustOrder.index', ['date' => \Carbon\Carbon::today()->toDateString()]) }}"
+                                                    <p
                                                         class="text-decoration-underline text-white-50">View
-                                                         Payment Reminder</a>
+                                                         Payment Reminder</p>
                                                 </div>
                                                 <div class="avatar-sm flex-shrink-0">
                                                     <span class="avatar-title bg-soft-light rounded fs-3">
@@ -116,7 +119,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div></a>
                                 </div>
                                 <div class="col-xl-3 col-md-6"></div>
 

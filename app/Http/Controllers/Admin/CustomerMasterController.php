@@ -292,47 +292,19 @@ public function destroy(Request $request)
                             'orderDetails','orderDetails.color','orderDetails.vendor',
                         ])
                         ->where('cust_id', $id)
-                        // ->where('emp_id', $empid)
                         ->where('visit_id', $visitId)
                         ->where('status', 'view')
                         ->get();
 
                     // Purchased products for this visit
-                    $orderedProducts = CustomerProduct::with([
-                                'category','product','employee',
-                                'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus',
-                            ])
-                            ->where('cust_id', $id)
-                            // ->where('emp_id', $empid)
-                            ->where('visit_id', $visitId)
-                            ->whereHas('orderDetails', function ($q) {
-                                $q->whereIn('delivery_status', ['1','2']); // or ['0','1','2'] if stored as string
-                            })
-                            ->get();
-
                     $purchasedProducts = CustomerProduct::with([
-                                'category','product','employee',
-                                'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus',
-                            ])
-                            ->where('cust_id', $id)
-                            // ->where('emp_id', $empid)
-                            ->where('visit_id', $visitId)
-                            ->whereHas('orderDetails', function ($q) {
-                                $q->where('delivery_status', 9); // or ['0','1','2'] if stored as string
-                            })
-                            ->get();
-
-                    $NotpurchasedProducts = CustomerProduct::with([
-                                'category','product','employee',
-                                'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus','orderDetails.notPurchasedReason'
-                            ])
-                            ->where('cust_id', $id)
-                             // ->where('emp_id', $empid)
-                            ->where('visit_id', $visitId)
-                            ->whereHas('orderDetails', function ($q) {
-                                $q->where('delivery_status', 10); // or ['0','1','2'] if stored as string
-                            })
-                            ->get();
+                            'category','product','employee',
+                            'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus',
+                        ])
+                        ->where('cust_id', $id)
+                        ->where('visit_id', $visitId)
+                        ->where('status', '!=', 'view')
+                        ->get();
 
                     // Orders (money lives on CustOrder)
                     // If your total columns are different, replace with your column names.
@@ -364,9 +336,7 @@ public function destroy(Request $request)
                         'visit'             => $visit,
                         'followups'         => $visit->visitDetails, // ALL followups (hasMany)
                         'viewProducts'      => $viewProducts,
-                        'orderedProducts'   => $orderedProducts,
                         'purchasedProducts' => $purchasedProducts,
-                        'NotpurchasedProducts' => $NotpurchasedProducts,
                         'orderBreakdown'    => $orderBreakdown,
                         'totals'            => [
                             'amount'=>$visitAmount, 'net'=>$visitNet, 'paid'=>$visitPaid, 'due'=>$visitDue,
@@ -399,38 +369,14 @@ public function destroy(Request $request)
                         ->where('status', 'view')
                         ->get();
 
-                      $orderedProducts = CustomerProduct::with([
-                                'category','product','employee',
-                                'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus',
-                            ])
-                            ->where('cust_id', $id)
-                            ->where('visit_id', $visitId)
-                            ->whereHas('orderDetails', function ($q) {
-                                $q->whereIn('delivery_status', ['1','2']); // or ['0','1','2'] if stored as string
-                            })
-                            ->get();
-
                     $purchasedProducts = CustomerProduct::with([
-                                'category','product','employee',
-                                'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus',
-                            ])
-                            ->where('cust_id', $id)
-                            ->where('visit_id', $visitId)
-                            ->whereHas('orderDetails', function ($q) {
-                                $q->where('delivery_status', 9); // or ['0','1','2'] if stored as string
-                            })
-                            ->get();
-
-                    $NotpurchasedProducts = CustomerProduct::with([
-                                'category','product','employee',
-                                'orderDetails','orderDetails.color','orderDetails.vendor','orderDetails.OrderStatus','orderDetails.notPurchasedReason'
-                            ])
-                            ->where('cust_id', $id)
-                            ->where('visit_id', $visitId)
-                            ->whereHas('orderDetails', function ($q) {
-                                $q->where('delivery_status', 10); // or ['0','1','2'] if stored as string
-                            })
-                            ->get();
+                            'category','product','employee',
+                            'orderDetails','orderDetails.color','orderDetails.vendor'
+                        ])
+                        ->where('cust_id', $custId)
+                        ->where('visit_id', $visitId)
+                        ->where('status', '!=', 'view')
+                        ->get();
 
                     // amounts live on CustOrder: amount, net_total, paid_amount, due_amount
                     $orders = CustOrder::where('cust_id', $custId)
@@ -459,9 +405,7 @@ public function destroy(Request $request)
                         'visit'             => $visit,
                         'followups'         => $visit->visitDetails,   // now ALL followups
                         'viewProducts'      => $viewProducts,
-                        'orderedProducts'   => $orderedProducts,
                         'purchasedProducts' => $purchasedProducts,
-                        'NotpurchasedProducts' => $NotpurchasedProducts,
                         'orderBreakdown'    => $orderBreakdown,
                         'totals'            => [
                             'amount'=>$visitAmount, 'net'=>$visitNet, 'paid'=>$visitPaid, 'due'=>$visitDue,
