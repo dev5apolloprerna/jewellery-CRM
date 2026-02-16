@@ -159,6 +159,7 @@
 
             <div class="mt-3">
               <h5 class="card-title text-uppercase fw-bold text-black mb-2">Product List</h5>
+              <div class="table-scroll">
               <table class="table table-bordered">
                 <thead>
                   <tr>
@@ -172,10 +173,12 @@
                 </thead>
                 <tbody id="productTableBody"></tbody>
               </table>
+              </div>
             </div>
 
             <div class="mt-3">
               <h5 class="card-title text-uppercase fw-bold text-black mb-2">Purchased Product List</h5>
+              <div class="table-scroll">
               <table class="table table-bordered">
                 <thead>
                   <tr>
@@ -189,6 +192,7 @@
                 </thead>
                 <tbody id="purchasedTableBody"></tbody>
               </table>
+              </div>
             </div>
           </div>
         </form>

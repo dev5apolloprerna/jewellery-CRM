@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-
 use Illuminate\Http\Request;
 
 use App\Models\ProductCategory;
@@ -127,75 +125,33 @@ class CustomerVisiteController extends Controller
 
             return view('admin.new_visite.overdue_followup', compact('followups'));
         }
-        public function product($id)
+     public function product($id)
         {
-            try {
-
+            /*try
+            {*/
                 $user = Auth::guard('web_employees')->user();
-
-                // ===== STEP 1: fetch products =====
-                $query = CustomerProduct::with([
-                    'customer',
-                    'product',
-                    'employee',
-                    'category',
-                    'branch',
-                    'orderDetails.OrderStatus',
-                    'orderStatus'
-                ])
-                ->where('cust_id', $id)
-                ->whereNull('visit_id')
-                ->orderBy('product_id', 'desc');
-
-                if ($user && $user->emp_id && $user->branch_id) {
-                    $products = $query->paginate(env('PER_PAGE_COUNT'));
-                } else {
-                    $products = $query->get();
+    
+                if ($user && $user->emp_id != null && $user->branch_id != null) 
+                {
+                    $empid = $user->emp_id;
+                    $branch_id = $user->branch_id;
+        
+                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->paginate(env('PER_PAGE_COUNT'));
+                    return view('employee.cust_product.index', compact('products','id'));
                 }
+                else
+                {
+                    $products = CustomerProduct::with(['customer', 'product', 'employee','category','branch','orderDetails.OrderStatus','orderStatus'])->where(['cust_id'=>$id])->whereNull('visit_id')->orderBy('product_id','desc')->get();
 
-                // ===== STEP 2: collect cust_pro_ids =====
-                $custProIds = collect($products instanceof \Illuminate\Pagination\AbstractPaginator
-                    ? $products->items()
-                    : $products
-                )->pluck('cust_pro_id')->filter()->values();
+                            return response()->json($products);
 
-                if ($custProIds->isNotEmpty()) {
-
-                    // ===== STEP 3: fetch not-purchased reason text =====
-                    $reasonMap = DB::table('cust_order_detail as od')
-                        ->leftJoin(
-                            'followup_close_reason as cr',
-                            'cr.close_reason_id',
-                            '=',
-                            'od.not_purchased_reason'
-                        )
-                        ->whereIn('od.cust_pro_id', $custProIds)
-                        ->pluck('cr.close_reason', 'od.cust_pro_id');
-
-                    // ===== STEP 4: inject into orderDetails =====
-                    foreach ($products as $p) {
-                        if ($p->orderDetails) {
-                            $p->orderDetails->not_purchased_reason_text =
-                                $reasonMap[$p->cust_pro_id] ?? null;
-                        }
-                    }
+                return view('admin.cust_product.index', compact('products','id'));
                 }
-
-                // ===== STEP 5: return =====
-                if ($user && $user->emp_id && $user->branch_id) {
-                    return view('employee.cust_product.index', compact('products', 'id'));
-                }
-
-                return response()->json($products);
-
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage()
-                ], 500);
-            }
+            /*} catch (\Exception $e) 
+            {
+                    return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
+            }*/
         }
-
 
     public function previous_visit(Request $request,$id)
     {

@@ -289,7 +289,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['viewProducts'] as $vp)
+                                    @forelse(($block['viewProducts'] ?? []) as $vp)
+                                    
                                     <tr>
                                         <td>{{ $vp->category->category_name ?? '' }}</td>
                                         <td>{{ $vp->product->product_name ?? '' }}</td>
@@ -322,7 +323,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['orderedProducts'] as $pp)
+                                @forelse(($block['orderedProducts'] ?? []) as $pp)
+
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>
@@ -366,7 +368,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['purchasedProducts'] as $pp)
+                                @forelse(($block['purchasedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>
@@ -406,7 +408,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['NotpurchasedProducts'] as $pp)
+                                @forelse(($block['NotpurchasedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>

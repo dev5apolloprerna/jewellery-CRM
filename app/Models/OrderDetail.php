@@ -21,7 +21,14 @@ class OrderDetail extends Model
         'isPayment',
     ];
 
-   
+    public function notPurchasedReason()
+    {
+        return $this->belongsTo(
+            CloseReason::class,
+            'not_purchased_reason',   // FK column in orderdetail / cust_order_detail table
+            'close_reason_id'         // PK column in close_reason table
+        );
+    }
 
 
 }

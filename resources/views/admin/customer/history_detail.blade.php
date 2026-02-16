@@ -86,7 +86,7 @@
 
 @php
     $r = \Illuminate\Support\Facades\Route::currentRouteName();
-    $cid = $customer->customer_id; // adjust if different 
+    $cid = $customer->customer_id; // adjust if different
     $latest = $customer->latestVisit ?? null;
 
     $orderId = null;
@@ -347,7 +347,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['orderedProducts'] as $pp)
+                                @forelse(($block['orderedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>
@@ -392,7 +392,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['purchasedProducts'] as $pp)
+                                @forelse(($block['purchasedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>
@@ -432,7 +432,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @forelse($block['NotpurchasedProducts'] as $pp)
+                                   @forelse(($block['NotpurchasedProducts'] ?? []) as $pp)
                                     @php $dd = $pp->orderDetails->delivery_date ?? null; @endphp
                                     <tr>
                                         <td>{{ $pp->category->category_name ?? '' }}</td>

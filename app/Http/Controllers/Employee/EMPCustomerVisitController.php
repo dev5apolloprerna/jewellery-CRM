@@ -143,13 +143,7 @@ class EMPCustomerVisitController extends Controller
     public function previous_visit(Request $request,$id)
     {
         $prVisite = CustomerVisit::with('visitDetails','closereason','customer','employee')->where(['cust_id'=>$id])->orderBy('visit_id','desc')->paginate(env('PER_PAGE_COUNT'));
-
-
-         $orderId = CustOrder::where(['cust_id'=>$id,'visit_id'=>null])
-        ->latest('order_id')
-        ->value('order_id');
-
-        return view('employee.new_visite.previous_visit',compact('prVisite','id','orderId'));
+        return view('employee.new_visite.previous_visit',compact('prVisite'));
 
     }
     public function previous_visit_view(Request $request,$id)
